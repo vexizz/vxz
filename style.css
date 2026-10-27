@@ -332,6 +332,29 @@ button.slot:hover { filter: brightness(1.2) saturate(1.15); }
 .inspect p { margin: 0; font-family: var(--f-term); font-size: 19px; line-height: 1.15; }
 .inspect .empty { color: var(--muted); text-align: center; margin-top: 8px; }
 .inspect .slot.big { width: 96px; }
+
+/* drag-to-equip */
+.drag-src { display: block; touch-action: none; cursor: grab; }
+.drag-src:hover .slot { filter: brightness(1.15); }
+.gear [data-drag-key] { touch-action: none; }
+.equip-hint { margin-top: 5px; font-size: 9px; color: var(--muted); }
+.equip-hint b { font-weight: 400; color: var(--gold); }
+.drag-ghost {
+  position: fixed; z-index: 1000; width: 58px; height: 58px; margin: -29px 0 0 -29px;
+  pointer-events: none;
+  padding: 2px; background: #000;
+  border: 2px solid #ffd100;
+  box-shadow: 0 0 0 1px #000, 0 0 16px rgba(255, 209, 0, .8), 0 8px 18px rgba(0, 0, 0, .7);
+  transform: rotate(-6deg) scale(1.05);
+}
+.drag-ghost img { display: block; width: 100%; height: 100%; }
+body.dragging-item { user-select: none; }
+body.dragging-item .gear .slot { outline: 1px dashed rgba(255, 209, 0, .55); outline-offset: 2px; }
+.gear .slot.drop-target {
+  border-color: #ffd100; filter: brightness(1.35);
+  box-shadow: 0 0 0 1px #000, 0 0 16px rgba(255, 209, 0, .95);
+  outline: 2px solid #ffd100; outline-offset: 2px;
+}
 .inspect .stats { margin-top: 2px; }
 .rarity { font-family: var(--f-tiny); font-size: 11px; color: var(--muted); margin-top: 6px; }
 .rarity span { color: var(--gold); letter-spacing: 1px; }
@@ -514,6 +537,8 @@ button.slot:hover { filter: brightness(1.2) saturate(1.15); }
 
   .inspect .top { grid-template-columns: 112px 1fr; }
   .inspect .slot.big { width: 112px; }
+  .equip-hint { font-size: 11px; }
+  .drag-ghost { width: 68px; height: 68px; margin: -34px 0 0 -34px; }
   .inspect h3 { font-size: 36px; }
   .inspect .sub { font-size: 21px; }
   .inspect p { font-size: 23px; }
@@ -557,7 +582,10 @@ button.slot:hover { filter: brightness(1.2) saturate(1.15); }
   body { padding: 12px 8px; }
   .layout { grid-template-columns: 1fr; height: auto; }
   .equipview { flex: none; height: 440px; }
-  .right { order: -1; }
+  /* phone order: character/equipment, section tabs + items, then inspect + bag (progress bar follows) */
+  .char { order: 1; }
+  .right { order: 2; }
+  .mid { order: 3; }
   .list { max-height: 440px; }
   .inspect { min-height: 220px; }
   .hud-top { padding: 10px 16px; }

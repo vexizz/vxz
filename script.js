@@ -13,6 +13,8 @@ const PLAYER = {
   mp: [34, 50],
   stats: { STR: 34, DEF: 38, DEX: 23, CHA: 27, INT: 40, LUK: 7 },
   intro: "Oh... a visitor! Welcome to my corner of the internet. Pick a slot on the right (or press 1-6) to rummage through my things, and click any item to inspect it.",
+  // shown instead on phones, where the section tabs sit below the character
+  introMobile: "Oh... a visitor! Welcome to my corner of the internet. Pick a slot below to rummage through my things, and tap any item to inspect it.",
   // Equipment slots around the character: 5 on the left, 5 on the right.
   // Each is [tabId, itemIndex] or null for an empty slot.
   gear: [
@@ -247,7 +249,7 @@ const TABS = [
         desc: "Currently private." },
       { name: "Portfolio", icon: "portfolio", qty: 1, rarity: 5, locked: true,
         stats: [["Access", "EMAIL"], ["Status", "PRIVATE"]],
-        desc: "Due to privacy and personal reasons, I've decided to keep my non-professional and work life separate. Please send me an email at el.vexizz@gmail.com for business inquiries. Otherwise, I'm currently not looking for work, thanks for understanding :)",
+        desc: "Due to privacy and personal reasons, I've decided to keep my non-professional and work life separate. Please send me an email at el.vexizz@gmail.com for business inquiries. Thanks for understanding :)",
         link: "mailto:el.vexizz@gmail.com", linkLabel: "EMAIL ▶" },
     ],
   },
@@ -1561,6 +1563,15 @@ let currentTab = TABS[0].id;
 let currentKey = null;
 const openGroups = new Set(); // ids of expanded collapsible groups (e.g. an artist's song + album)
 
+// equipped items, one item key ("tab:index") or null per gear slot. Starts from PLAYER.gear;
+// visitors can drag items onto the slots, and their loadout is remembered in their browser.
+let gear = PLAYER.gear.map((g) => (g ? g[0] + ":" + g[1] : null));
+try {
+  const saved = JSON.parse(localStorage.getItem("vxz-gear"));
+  if (Array.isArray(saved) && saved.length === gear.length) gear = saved.map((k) => (k && allKeys.includes(k) ? k : null));
+} catch (e) {}
+const saveGear = () => { try { localStorage.setItem("vxz-gear", JSON.stringify(gear)); } catch (e) {} };
+
 (() => {
   const root = document.documentElement.style;
   root.setProperty("--noise", makeNoise());
@@ -1597,6 +1608,9 @@ const chime = () => { blip(523, .08); setTimeout(() => blip(784, .1), 70); setTi
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const getItem = (key) => { const [t, i] = key.split(":"); return TABS.find((x) => x.id === t).items[+i]; };
+
+// the welcome line: phones (stacked layout, no keyboard) get their own wording
+const introText = () => (innerWidth <= 900 && PLAYER.introMobile ? PLAYER.introMobile : PLAYER.intro);
 
 // typewriter dialog with a little voice blip
 let typeTimer;
@@ -1678,20 +1692,21 @@ function renderSheet() {
 }
 
 function renderGear() {
-  const slot = (g, i) => {
-    if (!g) return `<span class="slot empty"><span class="lbl">${GEAR_LABELS[i]}</span></span>`;
-    const key = g[0] + ":" + g[1], it = getItem(key);
-    return `<button class="slot r${it.rarity}" data-key="${key}" aria-pressed="${key === currentKey}" title="${esc(it.name)}" aria-label="${esc(it.name)}">${icon(it.icon)}</button>`;
+  // every slot is a drop target (data-gear); filled slots can also be dragged to move or unequip
+  const slot = (key, i) => {
+    if (!key) return `<span class="slot empty" data-gear="${i}" title="${GEAR_LABELS[i]}: drag an item here"><span class="lbl">${GEAR_LABELS[i]}</span></span>`;
+    const it = getItem(key);
+    return `<button class="slot r${it.rarity}" data-key="${key}" data-gear="${i}" data-drag-key="${key}" aria-pressed="${key === currentKey}" title="${esc(it.name)} (${GEAR_LABELS[i]})" aria-label="${esc(it.name)}">${icon(it.icon)}</button>`;
   };
-  $("gear-left").innerHTML = PLAYER.gear.slice(0, 5).map((g, i) => slot(g, i)).join("");
-  $("gear-right").innerHTML = PLAYER.gear.slice(5, 10).map((g, i) => slot(g, i + 5)).join("");
+  $("gear-left").innerHTML = gear.slice(0, 5).map((k, i) => slot(k, i)).join("");
+  $("gear-right").innerHTML = gear.slice(5, 10).map((k, i) => slot(k, i + 5)).join("");
 }
 
 function renderBag() {
   $("bag").innerHTML = allKeys.map((key) => {
     const it = getItem(key);
     return found.has(key)
-      ? `<button class="slot r${it.rarity}" data-key="${key}" aria-pressed="${key === currentKey}" title="${esc(it.name)}" aria-label="${esc(it.name)}">${icon(it.icon)}${qtyBadge(it)}</button>`
+      ? `<button class="slot r${it.rarity}" data-key="${key}" data-drag-key="${key}" aria-pressed="${key === currentKey}" title="${esc(it.name)}" aria-label="${esc(it.name)}">${icon(it.icon)}${qtyBadge(it)}</button>`
       : `<button class="slot r1" data-key="${key}" title="???" aria-label="Undiscovered item">${icon("question")}</button>`;
   }).join("");
   $("bag-count").textContent = `${found.size}/${allKeys.length}`;
@@ -1731,11 +1746,12 @@ function renderInspect() {
       <p class="empty">Select an item to inspect it...</p></div>`;
     return;
   }
-  const it = getItem(currentKey);
+  const it = getItem(currentKey), worn = gear.indexOf(currentKey);
   $("inspect").innerHTML = `${head}
-    <div class="top">${iconSlot(it, "big")}
+    <div class="top"><span class="drag-src" data-drag-key="${currentKey}" title="Drag onto a gear slot to equip">${iconSlot(it, "big")}</span>
       <div><h3 class="q${it.rarity}">${esc(it.name)}</h3>${it.title ? `<div class="sub">${esc(it.title)}</div>` : ""}
-      <div class="rarity tiny r${it.rarity}">RARITY <span>${"◆".repeat(it.rarity)}${"◇".repeat(5 - it.rarity)}</span></div></div>
+      <div class="rarity tiny r${it.rarity}">RARITY <span>${"◆".repeat(it.rarity)}${"◇".repeat(5 - it.rarity)}</span></div>
+      <div class="equip-hint tiny">${worn >= 0 ? `EQUIPPED · <b>${GEAR_LABELS[worn]}</b>` : "drag the icon onto a gear slot to equip"}</div></div>
     </div>
     <p>${esc(it.desc)}</p>
     ${duoBars(it)}
@@ -1975,14 +1991,74 @@ document.addEventListener("keydown", (e) => {
   const n = parseInt(e.key, 10);
   if (n >= 1 && n <= TABS.length) switchTab(TABS[n - 1].id);
 });
+let suppressClick = false; // set right after a drag so the drop doesn't also count as a click
 document.addEventListener("click", (e) => {
+  if (suppressClick) return;
   const b = e.target.closest("[data-key]");
   if (b) selectItem(b.dataset.key);
 });
+
+// ---------- equipment: drag items onto the gear slots ----------
+// Drag the Inspect icon, a Bag item, or an equipped item. Drop on a slot to equip (an item already
+// worn elsewhere swaps places); drop an equipped item anywhere else to unequip it.
+let drag = null;
+const gearSlotAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest("[data-gear]"); };
+const clearTargets = (keep) => document.querySelectorAll(".drop-target").forEach((el) => el !== keep && el.classList.remove("drop-target"));
+document.addEventListener("pointerdown", (e) => {
+  const src = e.target.closest("[data-drag-key]");
+  if (!src || e.button > 0) return;
+  if (src.closest("#bag") && e.pointerType !== "mouse") return; // let touch users scroll the bag
+  drag = { key: src.dataset.dragKey, from: src.dataset.gear, x: e.clientX, y: e.clientY, ghost: null };
+});
+document.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  if (!drag.ghost) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return; // still a click
+    drag.ghost = document.createElement("div");
+    drag.ghost.className = "drag-ghost";
+    drag.ghost.innerHTML = icon(getItem(drag.key).icon);
+    document.body.appendChild(drag.ghost);
+    document.body.classList.add("dragging-item");
+    blip(520, .04);
+  }
+  drag.ghost.style.left = e.clientX + "px";
+  drag.ghost.style.top = e.clientY + "px";
+  const over = gearSlotAt(e.clientX, e.clientY);
+  clearTargets(over);
+  if (over) over.classList.add("drop-target");
+});
+const endDrag = (e, cancelled) => {
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  if (!d.ghost) return; // it was just a click
+  d.ghost.remove();
+  document.body.classList.remove("dragging-item");
+  clearTargets(null);
+  suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
+  if (cancelled) return;
+  const it = getItem(d.key), target = gearSlotAt(e.clientX, e.clientY);
+  const label = it.title ? `${it.name} (${it.title})` : it.name;
+  if (target) {
+    const i = +target.dataset.gear, j = gear.indexOf(d.key);
+    if (i === j) return;
+    if (j >= 0) gear[j] = gear[i]; // it was worn in another slot: swap the two
+    gear[i] = d.key;
+    chime();
+    say(`Equipped ${label} to the ${GEAR_LABELS[i]} slot.`);
+  } else if (d.from !== undefined) {
+    gear[+d.from] = null;
+    blip(220, .12, "triangle", .05);
+    say(`Unequipped ${label}.`);
+  } else return;
+  saveGear(); renderGear(); renderInspect();
+};
+document.addEventListener("pointerup", (e) => endDrag(e, false));
+document.addEventListener("pointercancel", (e) => endDrag(e, true));
 $("lobby").addEventListener("click", () => {
   currentTab = TABS[0].id; currentKey = null;
   blip(110, .25, "sawtooth", .03);
-  renderAll(); say(PLAYER.intro);
+  renderAll(); say(introText());
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 const soundBtn = $("sound");
@@ -2016,7 +2092,7 @@ if (document.fonts) document.fonts.ready.then(fitToWindow);
 
 // ---------- boot ----------
 document.title = PLAYER.name;
-syncSound(); renderSheet(); renderAll(); say(PLAYER.intro);
+syncSound(); renderSheet(); renderAll(); say(introText());
 initTorches();
 initCharacter();
 fitToWindow();
