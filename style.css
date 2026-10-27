@@ -515,7 +515,7 @@ body.dragging-item .gear .slot { outline: 1px dashed rgba(255, 209, 0, .55); out
 .controls .tip kbd { font-family: var(--f-tiny); font-size: 12px; color: var(--bone); background: var(--ink); border: 1px solid var(--bone-dk); padding: 0 4px; }
 .controls .btns { display: flex; gap: 8px; }
 .btn.lobby { font-family: var(--f-title); font-size: 22px; padding: 4px 16px 2px; }
-#sound[aria-pressed="false"] { filter: grayscale(1) brightness(.8); }
+#sound[aria-pressed="false"], #music[aria-pressed="false"] { filter: grayscale(1) brightness(.8); }
 
 /* ---------- desktop: wider panels, larger text, bigger slots ---------- */
 @media (min-width: 901px) {

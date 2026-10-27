@@ -1606,6 +1606,86 @@ function blip(freq = 440, dur = 0.06, type = "square", vol = 0.035) {
 }
 const chime = () => { blip(523, .08); setTimeout(() => blip(784, .1), 70); setTimeout(() => blip(1046, .14), 140); };
 
+// ---------- background music: a quiet fantasy-MMO style loop, generated live ----------
+// Soft pads and a low drone over a medieval minor progression, a gentle 8-bit plucked arpeggio,
+// the odd melody phrase and distant bell, all through reverb. Original, not sampled from any game.
+let musicOn = true, music = null;
+try { musicOn = localStorage.getItem("vxz-music") !== "off"; } catch (e) {}
+const MUSIC_VOLUME = .055;
+const hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+// Am – Dm – G – C – Am – F – Em – Am
+const CHORDS = [[57, 60, 64], [50, 53, 57], [55, 59, 62], [48, 52, 55], [57, 60, 64], [53, 57, 60], [52, 55, 59], [57, 60, 64]];
+const MELODY = [57, 60, 62, 64, 67, 69, 72]; // A minor pentatonic
+function startMusic() {
+  if (!musicOn || music) return;
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  if (audio.state === "suspended") audio.resume();
+  const ac = audio, now = ac.currentTime;
+  const master = ac.createGain();
+  master.gain.setValueAtTime(0, now);
+  master.gain.linearRampToValueAtTime(MUSIC_VOLUME, now + 5); // slow fade in
+  const warm = ac.createBiquadFilter();
+  warm.type = "lowpass"; warm.frequency.value = 2200;
+  // cathedral-ish reverb from a decaying noise impulse
+  const verb = ac.createConvolver(), len = ac.sampleRate * 3.5, imp = ac.createBuffer(2, len, ac.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = imp.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+  verb.buffer = imp;
+  const dry = ac.createGain(), wet = ac.createGain();
+  dry.gain.value = .6; wet.gain.value = .55;
+  warm.connect(dry).connect(master);
+  warm.connect(verb).connect(wet).connect(master);
+  master.connect(ac.destination);
+  const tone = (type, freq, start, dur, vol, attack = .01) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, start);
+    g.gain.linearRampToValueAtTime(vol, start + attack);
+    g.gain.exponentialRampToValueAtTime(.0001, start + dur);
+    o.connect(g).connect(warm);
+    o.start(start); o.stop(start + dur + .05);
+  };
+  const BAR = 3.4;
+  let next = now + .3, bar = 0;
+  // schedule a little ahead of time so playback stays smooth
+  const schedule = () => {
+    while (next < ac.currentTime + 1.5) {
+      const chord = CHORDS[bar % CHORDS.length];
+      chord.forEach((n, i) => {
+        tone("triangle", hz(n - 12), next, BAR * 1.15, .05, 1.2); // pad
+        tone("sine", hz(n), next + i * .03, BAR, .03, 1.5);
+      });
+      tone("sine", hz(chord[0] - 24), next, BAR, .06, .8); // drone
+      for (let s = 0; s < 8; s++) { // plucked 8-bit arpeggio, a few notes left out
+        if (Math.random() < .25) continue;
+        tone("square", hz(chord[s % 3] + (s >= 4 ? 12 : 0)), next + (s * BAR) / 8, .5, .012);
+      }
+      if (bar % 2 === 1) for (let s = 0; s < 4; s++) { // a short melody every other bar
+        if (Math.random() < .35) continue;
+        tone("triangle", hz(MELODY[Math.floor(Math.random() * MELODY.length)] + 12), next + (s * BAR) / 4 + BAR / 8, .9, .025, .02);
+      }
+      if (Math.random() < .3) tone("sine", hz(chord[2] + 24), next + Math.random() * BAR, 2.5, .02, .005); // distant bell
+      next += BAR; bar++;
+    }
+  };
+  schedule();
+  music = { master, timer: setInterval(schedule, 400) };
+}
+function stopMusic() {
+  if (!music) return;
+  const m = music, t = audio.currentTime;
+  music = null;
+  clearInterval(m.timer);
+  m.master.gain.cancelScheduledValues(t);
+  m.master.gain.setValueAtTime(m.master.gain.value, t);
+  m.master.gain.linearRampToValueAtTime(0, t + 1);
+  setTimeout(() => m.master.disconnect(), 1300);
+}
+// browsers only allow sound after the visitor interacts, so the music starts on their first click/tap/key
+addEventListener("pointerdown", startMusic);
+addEventListener("keydown", startMusic);
+// pause everything while the tab is in the background
+document.addEventListener("visibilitychange", () => { if (audio) document.hidden ? audio.suspend() : audio.resume(); });
+
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const getItem = (key) => { const [t, i] = key.split(":"); return TABS.find((x) => x.id === t).items[+i]; };
 
@@ -2068,6 +2148,13 @@ soundBtn.addEventListener("click", () => {
   try { localStorage.setItem("vxz-sound", soundOn ? "on" : "off"); } catch (e) {}
   blip(660);
 });
+const musicBtn = $("music");
+const syncMusic = () => { musicBtn.setAttribute("aria-pressed", musicOn); musicBtn.textContent = musicOn ? "BGM ON" : "BGM OFF"; };
+musicBtn.addEventListener("click", () => {
+  musicOn = !musicOn; syncMusic();
+  try { localStorage.setItem("vxz-music", musicOn ? "on" : "off"); } catch (e) {}
+  musicOn ? startMusic() : stopMusic();
+});
 
 // ---------- fit the whole UI to the window on desktop ----------
 // Widens .game to match the window's shape (so widescreens get wider panels instead of empty sides),
@@ -2092,7 +2179,7 @@ if (document.fonts) document.fonts.ready.then(fitToWindow);
 
 // ---------- boot ----------
 document.title = PLAYER.name;
-syncSound(); renderSheet(); renderAll(); say(introText());
+syncSound(); syncMusic(); renderSheet(); renderAll(); say(introText());
 initTorches();
 initCharacter();
 fitToWindow();
