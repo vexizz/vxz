@@ -7,7 +7,7 @@
 const PLAYER = {
   name: "vexizz",
   class: "Wandering Soul",
-  level: 1,
+  level: 19,
   status: "ONLINE",
   hp: [226, 226],
   mp: [34, 50],
@@ -696,37 +696,29 @@ const PAINTERS = {
     x.strokeStyle = "#f4ead8"; x.lineWidth = 2; heart(); x.stroke();
     x.fillStyle = "rgba(255,255,255,.35)"; x.beginPath(); x.ellipse(27, 28, 3, 1.6, -.6, 0, PI * 2); x.fill();
   } },
+  // just the chef's hat, centred
   overcooked: { bg: ["#4ab8ff", "#06182e"], draw(x) {
-    x.save(); x.translate(32, 32); x.rotate(-PI / 5);
-    x.fillStyle = lin(x, -4, 0, 4, 0, [[0, "#7a8290"], [.5, "#f4f6fa"], [1, "#6a7280"]]);
-    poly(x, [[-4, -28], [4, -24], [4, 6], [-4, 6]]); x.fill();
-    x.fillStyle = "#4a2a14"; x.fillRect(-3.5, 6, 7, 14);
-    x.restore();
     glow(x, "#000000", 8, () => {
-      x.fillStyle = rad(x, 26, 16, 2, 22, [[0, "#ffffff"], [.7, "#e8eef4"], [1, "#9aa8b8"]]);
-      [[22, 22, 9], [32, 17, 10], [42, 22, 9], [32, 25, 9]].forEach(([a, b, r]) => { circle(x, a, b, r); x.fill(); });
-      x.fillStyle = lin(x, 0, 28, 0, 40, [[0, "#ffffff"], [1, "#b8c4d0"]]); x.fillRect(19, 28, 26, 12);
+      x.fillStyle = rad(x, 26, 19, 2, 22, [[0, "#ffffff"], [.7, "#e8eef4"], [1, "#9aa8b8"]]);
+      [[22, 30, 9], [32, 25, 10], [42, 30, 9], [32, 33, 9]].forEach(([a, b, r]) => { circle(x, a, b, r); x.fill(); });
+      x.fillStyle = lin(x, 0, 36, 0, 48, [[0, "#ffffff"], [1, "#b8c4d0"]]); x.fillRect(19, 36, 26, 12);
     });
     x.strokeStyle = "rgba(120,140,160,.6)"; x.lineWidth = 1;
-    [26, 32, 38].forEach((a) => { x.beginPath(); x.moveTo(a, 29); x.lineTo(a, 39); x.stroke(); });
-    glow(x, "#ff8a1a", 8, () => { x.fillStyle = rad(x, 46, 46, 0, 10, [[0, "#ffd070"], [1, "#e0501a"]]); circle(x, 46, 47, 9); x.fill(); });
-    x.fillStyle = "#ffffff"; x.font = "bold 14px Arial, sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
-    x.fillText("2", 46, 48);
+    [26, 32, 38].forEach((a) => { x.beginPath(); x.moveTo(a, 37); x.lineTo(a, 47); x.stroke(); });
+    sparkle(x, 50, 14, 4, "#e0f4ff");
   } },
+  // just the paper bag head, centred
   nightmares: { bg: ["#2aa8b0", "#02121a"], draw(x) {
-    x.fillStyle = "rgba(200,240,240,.12)"; x.fillRect(0, 40, 64, 24);
     glow(x, "#000000", 10, () => {
       x.fillStyle = lin(x, 18, 0, 44, 0, [[0, "#8a7450"], [.45, "#d8c49a"], [1, "#7a6444"]]);
-      poly(x, [[19, 14], [24, 11], [29, 14], [34, 10], [40, 13], [45, 12], [44, 46], [20, 46]]); x.fill();
+      poly(x, [[19, 17], [24, 14], [29, 17], [34, 13], [40, 16], [45, 15], [44, 51], [20, 51]]); x.fill();
     });
     x.strokeStyle = "rgba(90,70,40,.6)"; x.lineWidth = 1;
-    [[22, 18, 26, 30], [40, 16, 37, 40], [30, 38, 34, 44]].forEach(([a, b, c, d]) => { x.beginPath(); x.moveTo(a, b); x.lineTo(c, d); x.stroke(); });
+    [[22, 21, 26, 33], [40, 19, 37, 43], [30, 41, 34, 47]].forEach(([a, b, c, d]) => { x.beginPath(); x.moveTo(a, b); x.lineTo(c, d); x.stroke(); });
+    x.fillStyle = "rgba(60,40,20,.35)"; x.fillRect(20, 46, 24, 5);
     x.fillStyle = "#050302";
-    x.beginPath(); x.ellipse(27, 27, 2.6, 3.2, 0, 0, PI * 2); x.fill();
-    x.beginPath(); x.ellipse(37, 27, 2.6, 3.2, 0, 0, PI * 2); x.fill();
-    x.fillStyle = "#1a2a2c"; x.fillRect(18, 46, 28, 12);
-    glow(x, "#ffe020", 8, () => { x.fillStyle = lin(x, 0, 38, 0, 58, [[0, "#fff27a"], [1, "#c0a010"]]); poly(x, [[50, 34], [56, 52], [44, 52]]); x.fill(); });
-    x.fillStyle = "#050302"; x.beginPath(); x.ellipse(50, 47, 2.5, 3, 0, 0, PI * 2); x.fill();
+    x.beginPath(); x.ellipse(27, 31, 2.8, 3.4, 0, 0, PI * 2); x.fill();
+    x.beginPath(); x.ellipse(37, 31, 2.8, 3.4, 0, 0, PI * 2); x.fill();
   } },
   spiderman: { bg: ["#e0201a", "#1e0204"], draw(x) {
     glow(x, "#000000", 8, () => {
@@ -738,28 +730,53 @@ const PAINTERS = {
     for (let i = 0; i < 10; i++) { const a = i * PI / 5; x.beginPath(); x.moveTo(32, 30); x.lineTo(32 + Math.cos(a) * 30, 30 + Math.sin(a) * 30); x.stroke(); }
     for (let r = 6; r < 30; r += 6) { x.beginPath(); for (let i = 0; i <= 10; i++) { const a = i * PI / 5, rr = r * (i % 2 ? .92 : 1); x.lineTo(32 + Math.cos(a) * rr, 30 + Math.sin(a) * rr); } x.stroke(); }
     x.restore();
+    // angular eyes: wide at the outer top, tapering to the inner bottom, with thick black frames
     for (const s of [-1, 1]) {
-      const eye = [[32 + s * 3, 30], [32 + s * 13, 22], [32 + s * 14, 32]];
-      x.fillStyle = "#0a0404"; x.save(); x.translate(32, 0); x.scale(1.25, 1.15); x.translate(-32, -2); poly(x, eye); x.fill(); x.restore();
-      glow(x, "#ffffff", 4, () => { x.fillStyle = "#f8fbff"; poly(x, eye); x.fill(); });
+      const eye = [[32 + s * 2.5, 39], [32 + s * 14.5, 29], [32 + s * 15, 36], [32 + s * 9.5, 41.5]];
+      x.lineJoin = "round"; x.strokeStyle = "#0a0404"; x.lineWidth = 3; poly(x, eye); x.stroke();
+      glow(x, "#ffffff", 4, () => { x.fillStyle = lin(x, 0, 29, 0, 42, [[0, "#ffffff"], [1, "#c8d4e4"]]); poly(x, eye); x.fill(); });
     }
   } },
-  smt3: { bg: ["#d0c020", "#161402"], draw(x) {
-    x.fillStyle = lin(x, 10, 0, 54, 0, [[0, "#e8d870"], [.55, "#a89a30"], [1, "#2a2408"]]);
-    x.beginPath(); x.moveTo(14, 8); x.quadraticCurveTo(10, 34, 20, 56); x.lineTo(54, 56); x.lineTo(54, 8); x.closePath(); x.fill();
-    x.fillStyle = "rgba(40,20,0,.6)"; [[46, 14, 4], [50, 40, 6], [20, 12, 3], [40, 52, 3]].forEach(([a, b, r]) => { circle(x, a, b, r); x.fill(); });
-    x.fillStyle = rad(x, 30, 30, 0, 9, [[0, "#fff8c0"], [1, "#c0a830"]]);
-    x.beginPath(); x.moveTo(18, 30); x.quadraticCurveTo(30, 22, 42, 30); x.quadraticCurveTo(30, 36, 18, 30); x.fill();
-    glow(x, "#ffcf3a", 10, () => { x.fillStyle = rad(x, 30, 30, 0, 5, [[0, "#ffffff"], [.4, "#e0b020"], [1, "#4a3004"]]); circle(x, 30, 30, 4.2); x.fill(); });
-    x.fillStyle = "#0a0602"; circle(x, 30, 30, 1.6); x.fill();
-    x.strokeStyle = "#140c02"; x.lineWidth = 1.5; x.beginPath(); x.moveTo(17, 29); x.quadraticCurveTo(30, 21, 43, 29); x.stroke();
-    glow(x, "#3aff8a", 8, () => {
-      x.strokeStyle = "#0a0a06"; x.lineWidth = 2.4;
-      x.beginPath(); x.moveTo(44, 8); x.lineTo(42, 22); x.lineTo(48, 34); x.lineTo(44, 58); x.stroke();
-      x.beginPath(); x.moveTo(50, 8); x.lineTo(48, 20); x.lineTo(54, 30); x.stroke();
-      x.strokeStyle = "rgba(90,255,150,.85)"; x.lineWidth = .8;
-      x.beginPath(); x.moveTo(45.5, 8); x.lineTo(43.5, 22); x.lineTo(49.5, 34); x.lineTo(45.5, 58); x.stroke();
+  // the Demi-fiend: olive-yellow face lit from the left, dark hair, glowing gold eyes,
+  // black tattoo stripes with green-glowing edges running down the face, blood spatter
+  smt3: { bg: ["#a8a020", "#0e0c02"], draw(x) {
+    // painted a little smaller so the whole face fits inside the frame after the icon zoom
+    x.translate(32, 33); x.scale(.8, .8); x.translate(-32, -33);
+    const face = () => { x.beginPath(); x.moveTo(12, 16); x.quadraticCurveTo(32, 10, 52, 16); x.quadraticCurveTo(57, 36, 48, 52); x.quadraticCurveTo(40, 62, 32, 62); x.quadraticCurveTo(22, 62, 16, 52); x.quadraticCurveTo(7, 36, 12, 16); x.closePath(); };
+    glow(x, "#000000", 6, () => { x.fillStyle = lin(x, 10, 0, 56, 0, [[0, "#f2e690"], [.45, "#c4b450"], [.8, "#6a5e1c"], [1, "#2a2408"]]); face(); x.fill(); });
+    // tattoo stripes, clipped to the face
+    x.save(); face(); x.clip();
+    const stripe = (pts) => {
+      const path = () => { x.beginPath(); pts.forEach(([a, b], i) => (i ? x.lineTo(a, b) : x.moveTo(a, b))); };
+      x.lineJoin = "round"; x.strokeStyle = "#060604"; x.lineWidth = 2.8; path(); x.stroke();
+      glow(x, "#3aff8a", 6, () => { x.strokeStyle = "rgba(110,255,160,.9)"; x.lineWidth = .7; x.save(); x.translate(1.6, 0); path(); x.stroke(); x.restore(); });
+    };
+    stripe([[35, 8], [36, 22], [40, 30], [38, 44], [42, 62]]);
+    stripe([[45, 10], [47, 24], [50, 34], [47, 50], [49, 62]]);
+    stripe([[14, 30], [13, 42], [17, 54]]);
+    stripe([[22, 52], [26, 58], [32, 60]]);
+    // shadow on the far side of the face
+    x.fillStyle = lin(x, 30, 0, 56, 0, [[0, "rgba(0,0,0,0)"], [1, "rgba(0,0,0,.45)"]]); x.fillRect(30, 0, 30, 64);
+    x.restore();
+    // hair and bangs
+    x.fillStyle = "#0c0a06";
+    x.beginPath(); x.moveTo(6, 2); x.lineTo(58, 2); x.lineTo(58, 22);
+    x.quadraticCurveTo(52, 15, 47, 23); x.quadraticCurveTo(42, 14, 37, 22); x.quadraticCurveTo(31, 13, 27, 21); x.quadraticCurveTo(21, 14, 17, 22); x.quadraticCurveTo(11, 16, 8, 26); x.closePath(); x.fill();
+    // brows, eyes, nose, mouth
+    x.strokeStyle = "#1a1404"; x.lineWidth = 1.8; x.lineCap = "round";
+    x.beginPath(); x.moveTo(17, 27); x.lineTo(27, 25.5); x.stroke();
+    x.beginPath(); x.moveTo(37, 25.5); x.lineTo(46, 27); x.stroke();
+    [[22.5, 31, 1], [41, 31, .7]].forEach(([ex, ey, lit]) => {
+      x.fillStyle = `rgba(250,244,200,${lit})`; x.beginPath(); x.moveTo(ex - 5, ey); x.quadraticCurveTo(ex, ey - 3.6, ex + 5, ey); x.quadraticCurveTo(ex, ey + 2.8, ex - 5, ey); x.fill();
+      glow(x, "#ffcf3a", 8, () => { x.fillStyle = rad(x, ex, ey, 0, 2.8, [[0, "#fff8c0"], [.5, "#f0b020"], [1, "#6a4004"]]); circle(x, ex, ey, 2.4); x.fill(); });
+      x.fillStyle = "#0a0602"; x.fillRect(ex - .5, ey - 1.8, 1, 3.6);
+      x.strokeStyle = "#1a1404"; x.lineWidth = 1; x.beginPath(); x.moveTo(ex - 5, ey); x.quadraticCurveTo(ex, ey - 3.6, ex + 5, ey); x.stroke();
     });
+    x.strokeStyle = "rgba(70,58,14,.7)"; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(32, 31); x.lineTo(33.5, 41); x.lineTo(30, 43); x.stroke();
+    x.strokeStyle = "#3a2e0a"; x.lineWidth = 1.2; x.beginPath(); x.moveTo(27, 50); x.quadraticCurveTo(32, 51, 37, 49.5); x.stroke();
+    // blood spatter
+    x.fillStyle = "rgba(90,10,4,.75)"; [[50, 40, 2.2], [53, 46, 1.4], [48, 22, 1.2], [16, 46, 1]].forEach(([a, b, r]) => { circle(x, a, b, r); x.fill(); });
   } },
   // ---------- other-tab icons ----------
   dna: { bg: ["#3ac060", "#02140a"], draw(x) {
@@ -997,7 +1014,8 @@ const PAINTERS = {
     x.beginPath(); x.moveTo(8, 46); x.lineTo(20, 10); x.moveTo(56, 20); x.lineTo(40, 60); x.stroke(); x.setLineDash([]);
     [[8, 46], [56, 20]].forEach(([a, b]) => { x.fillStyle = "#ffffff"; x.fillRect(a - 2.5, b - 2.5, 5, 5); x.strokeStyle = "#5a1a8a"; x.strokeRect(a - 2.5, b - 2.5, 5, 5); });
     [[20, 10], [40, 60]].forEach(([a, b]) => { x.fillStyle = "#c040ff"; circle(x, a, b, 2.3); x.fill(); });
-    x.save(); x.translate(33, 30); x.rotate(-PI / 5);
+    // positioned so the nib's tip (local 0,14) lands exactly on the curve at t = 0.6 (35.6, 36.1)
+    x.save(); x.translate(27.4, 24.7); x.rotate(-PI / 5);
     glow(x, "#000000", 6, () => {
       x.fillStyle = lin(x, -7, 0, 7, 0, [[0, "#3a3a46"], [.5, "#d8dae4"], [1, "#2a2a34"]]);
       poly(x, [[0, 14], [-7, 0], [-5, -10], [5, -10], [7, 0]]); x.fill();
@@ -1167,12 +1185,18 @@ const PAINTERS = {
       x.strokeStyle = "#120a04"; x.lineWidth = 1.1;
       [[28, 31, 12, 20], [28, 31, 15, 27], [28, 32, 19, 44], [28, 32, 23, 46]].forEach(([a, b, c, d]) => { x.beginPath(); x.moveTo(a, b); x.lineTo(c, d); x.stroke(); });
       x.fillStyle = "#ffe070"; [[8, 20], [9, 24], [13, 50], [16, 52]].forEach(([a, b]) => { circle(x, a, b, .9); x.fill(); });
-      x.fillStyle = "#a8d8f0"; circle(x, 24, 34, 1.4); x.fill();
+    };
+    // a specimen pin: pale blue head with a highlight
+    const pin = (px, py) => {
+      x.fillStyle = "#1a0e04"; circle(x, px, py, 2.1); x.fill();
+      x.fillStyle = rad(x, px - .6, py - .6, 0, 2, [[0, "#ffffff"], [.4, "#c8e8f8"], [1, "#6a9ab8"]]); circle(x, px, py, 1.6); x.fill();
     };
     glow(x, "#000000", 6, wing);
     x.save(); x.translate(64, 0); x.scale(-1, 1); glow(x, "#000000", 6, wing); x.restore();
     x.fillStyle = "#1a0e04"; x.beginPath(); x.ellipse(32, 32, 1.6, 9, 0, 0, PI * 2); x.fill();
     x.strokeStyle = "#1a0e04"; x.lineWidth = .8; x.beginPath(); x.moveTo(32, 23); x.lineTo(29, 17); x.moveTo(32, 23); x.lineTo(35, 17); x.stroke();
+    // three pins in a row: one on each upper wing near the body, one through the body
+    pin(22.5, 31.5); pin(41.5, 31.5); pin(32, 30);
   } },
   question: { bg: ["#a07a10", "#181004"], draw(x) {
     x.font = "bold 50px Georgia, serif"; x.textAlign = "center"; x.textBaseline = "middle";
@@ -1350,13 +1374,34 @@ function icon(name) {
 //  Small pixel sprites: only the panel corners and the arrow cursor.
 // ============================================================
 const K = "#0a0706";
+// The cursor is generated rather than hand-drawn so it is exactly symmetric about its diagonal
+// (pixel at column c, row r always matches c<->r). Tip at the top-left, triangular gem body,
+// gold frame, darker base, and a small pendant hanging off the middle of the base.
+function pointerPixels() {
+  const N = 16;
+  const tri = (c, r) => r >= c * .4 - .01 && c >= r * .4 - .01 && c + r <= 13;
+  // a pendant hanging from the middle of the base: stem, little side curls, and a knob
+  const pendant = (c, r) => (c === r && c >= 7 && c <= 10) || (c === 8 && r === 10) || (c === 10 && r === 8);
+  const solid = (c, r) => c >= 0 && r >= 0 && c < N && r < N && (tri(c, r) || pendant(c, r));
+  const rows = [];
+  for (let r = 0; r < N; r++) {
+    let row = "";
+    for (let c = 0; c < N; c++) {
+      if (!solid(c, r)) {
+        let near = false;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (solid(c + dx, r + dy)) near = true;
+        row += near ? "k" : ".";
+      } else if (pendant(c, r)) row += c === 10 && r === 10 ? "d" : "g";
+      else if (!tri(c - 1, r) || !tri(c + 1, r) || !tri(c, r - 1) || !tri(c, r + 1)) row += c + r >= 13 ? "d" : "g";
+      else { const t = (c + r) / 13; row += t < .3 ? "w" : t < .5 ? "o" : t < .75 ? "r" : "b"; }
+    }
+    rows.push(row);
+  }
+  return rows;
+}
 const SPRITES = {
-  // gold-framed arrow with an amber gem and little curls at the base
-  pointer: { pal: { k: "#1a0e06", g: "#e8c070", d: "#8a5a20", w: "#ffe6b8", o: "#e08a3a", r: "#a04a1a", b: "#4a1e0a" }, px: [
-    "kk..............", "kgk.............", "kggk............", "kgwgk...........",
-    "kgowgk..........", "kgoorgk.........", "kgorrrgk........", "kgorrrrgk.......",
-    "kgorrrrbgk......", "kgorrrbbbgk.....", "kgobbbbbbdgk....", "kgddddddddddk...",
-    "kgkkdgkkkkkkk...", "kgk.kdgk........", "kdk..kdk........", "kk....kk........"] },
+  // gold-framed arrowhead with an amber gem, mirror-symmetric along its diagonal
+  pointer: { pal: { k: "#1a0e06", g: "#e8c070", d: "#8a5a20", w: "#ffe6b8", o: "#e08a3a", r: "#a04a1a", b: "#4a1e0a" }, px: pointerPixels() },
   corner: { pal: { b: "#cdbd98", d: "#6b5a44" }, px: [
     "bbbbbbbbb.", "bddddddb..", "bdbbbbb...", "bdb...b.b.", "bdb....b..",
     "bdb...b.b.", "bdb.......", "bb.b......", "b...b.....", "b........."] },
@@ -1963,6 +2008,8 @@ function fitToWindow() {
   game.style.width = width + "px";
   const scale = Math.min(vw / width, vh / game.offsetHeight, 1.8);
   game.style.zoom = scale.toFixed(4);
+  // when shrunk, small text is only a few pixels tall, so the moving grain/flicker makes it shimmer
+  document.documentElement.classList.toggle("calm-fx", scale < .9);
 }
 addEventListener("resize", fitToWindow);
 if (document.fonts) document.fonts.ready.then(fitToWindow);
