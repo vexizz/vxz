@@ -361,6 +361,7 @@ const PAINTERS = {
     sparkle(x, 49, 12, 7); sparkle(x, 15, 46, 3, "#d0b0ff"); sparkle(x, 42, 31, 2, "#bff8ff");
   } },
   gamepad: { bg: ["#22a050", "#041a0a"], draw(x) {
+    x.save(); x.translate(0, -5); // centre the controller (body is drawn around y 38; the icon centre is 33)
     glow(x, "#000000", 10, () => {
       x.fillStyle = lin(x, 0, 24, 0, 50, [[0, "#9a8cc0"], [.45, "#4e4270"], [1, "#1a1428"]]);
       x.beginPath(); x.arc(20, 38, 12, PI * .5, PI * 1.5); x.lineTo(44, 26); x.arc(44, 38, 12, -PI * .5, PI * .5); x.closePath(); x.fill();
@@ -371,6 +372,7 @@ const PAINTERS = {
     [[44, 32, "#ff3b3b"], [49.5, 38, "#3ee6c4"], [38.5, 38, "#ffd04a"], [44, 44, "#4a8aff"]].forEach(([cx, cy, c]) => {
       glow(x, c, 8, () => { x.fillStyle = rad(x, cx - 1, cy - 1, 0, 3, [[0, "#ffffff"], [.4, c], [1, rgba(c, .8)]]); circle(x, cx, cy, 2.8); x.fill(); });
     });
+    x.restore();
     sparkle(x, 52, 14, 6, "#c8ffd8"); sparkle(x, 12, 18, 3);
   } },
   note: { bg: ["#c02ab8", "#22042a"], draw(x) {
