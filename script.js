@@ -6,14 +6,13 @@
 // ============================================================
 const PLAYER = {
   name: "vexizz",
-  avatar: "https://avatars.githubusercontent.com/vexizz?s=240",
   class: "Wandering Soul",
   level: 1,
   status: "ONLINE",
   hp: [226, 226],
   mp: [34, 50],
   stats: { STR: 34, DEF: 38, DEX: 23, CHA: 27, INT: 40, LUK: 7 },
-  intro: "Ah... a visitor. Welcome to my corner of the internet. Pick a slot on the right (or press 1-6) to rummage through my things, and click any item to inspect it.",
+  intro: "Oh... a visitor! Welcome to my corner of the internet. Pick a slot on the right (or press 1-6) to rummage through my things, and click any item to inspect it.",
   // Equipment slots around the character: 5 on the left, 5 on the right.
   // Each is [tabId, itemIndex] or null for an empty slot.
   gear: [
@@ -61,7 +60,7 @@ const TABS = [
     items: [
       { id: "yorushika", name: "Favorite Artist", title: "Yorushika · ヨルシカ", icon: "yorushika", qty: 1, rarity: 5,
         stats: [["Genre", "J-Rock"], ["From", "Japan"], ["Members", "2"], ["Love", "∞"]],
-        desc: "n-buna's songwriting and suis's voice... I'll never stop recommending them." },
+        desc: "n-buna's songwriting and suis's voice... I'll never shut up about them." },
       { under: "yorushika", name: "Favorite Song", title: "嘘月 · Usotsuki", icon: "usotsuki", qty: 1, rarity: 5,
         stats: [["Album", "創作"], ["Plays", "∞"]],
         desc: "Whoa, why's the screen blurry all of a sudden?" },
@@ -94,8 +93,10 @@ const TABS = [
         stats: [["Genre", "Math-Rock"], ["From", "Japan"]], desc: "The Simpsons Paradox in time signatures." },
       { compact: true, name: "Motionless in White", icon: "emblem:MIW:#8a8a9a:skull", qty: 1, rarity: 4,
         stats: [["Genre", "Metalcore"], ["From", "USA"]], desc: "Solid asf." },
+      { compact: true, name: "Brand New", icon: "emblem:BN:#8a9ab0:moon", qty: 1, rarity: 4,
+        stats: [["Genre", "Alt-Rock"], ["From", "USA"]], desc: "Okay, I believe you...... but my tommy gun don't." },
       { compact: true, name: "Korn", icon: "emblem:KoЯN:#4a9a2a:scratch", qty: 1, rarity: 3,
-        stats: [["Genre", "Nu-Metal"], ["From", "USA"]], desc: "There was a phase..." },
+        stats: [["Genre", "Nu-Metal"], ["From", "USA"]], desc: "X-Men Evolution Rogue and I would get along~" },
       { compact: true, name: "Thirty Seconds to Mars", icon: "emblem:30STM:#d0301a:triad", qty: 1, rarity: 4,
         stats: [["Genre", "Alt-Rock"], ["From", "USA"]], desc: "They were ALL OVER YOUTUBE OKAY." },
     ],
@@ -105,29 +106,29 @@ const TABS = [
     id: "skills", icon: "sword", label: "Skills",
     items: [
       { section: "Design", name: "Web Dev", icon: "book", qty: 1, rarity: 3,
-        stats: [["LV", "4yrs"], ["EXP", "MIDDLE"], ["Cost", "Coffee"], ["Range", "LONG"]],
+        stats: [["LV", "4 yrs"], ["EXP", "MIDDLE"], ["Cost", "Coffee"], ["Range", "LONG"]],
         desc: "Super into creative coding!" },
       { name: "UI/UX Design", icon: "uiux", qty: 1, rarity: 4,
-        stats: [["LV", "2yrs"], ["Class", "Design"], ["Tool", "Figma"], ["Range", "LONG"]],
+        stats: [["LV", "2 yrs"], ["Class", "Design"], ["Tool", "Figma"], ["Range", "LONG"]],
         desc: "Making things EASY to use because I was always too stupid for the internet and never knew why." },
       { name: "Motion Graphics", icon: "emblem:MG:#ff6a2a:wave", qty: 1, rarity: 4,
-        stats: [["LV", "8yrs"], ["Class", "Design"], ["Tool", "AE"], ["Range", "LONG"]],
+        stats: [["LV", "8 yrs"], ["Class", "Design"], ["Tool", "AE"], ["Range", "LONG"]],
         desc: "Colours! Shapes! Vectors! Flashbangs! AAAAAAAAAAAAA" },
       { name: "Illustration", icon: "illustration", qty: 1, rarity: 4,
-        stats: [["LV", "8yrs"], ["Class", "Art"], ["Tool", "CSP"], ["Style", "???"]],
+        stats: [["LV", "8 yrs"], ["Class", "Art"], ["Tool", "CSP"], ["Style", "???"]],
         desc: "Professional artist and colour assistant for mangaka. AKA: Horrible back." },
       { name: "Editing", icon: "animation", qty: 1, rarity: 4,
         stats: [["LV", "7 yrs"], ["Class", "Art"], ["Tool", "Many"], ["Frames", "MANY"]],
         desc: "Editing and translating videos for MCYT Streamers and content creators." },
       { name: "Graphic Design", icon: "graphic", qty: 1, rarity: 3,
-        stats: [["LV", "6yrs"], ["Class", "Design"], ["Tool", "PS"], ["Kerning", "100"]],
+        stats: [["LV", "6 yrs"], ["Class", "Design"], ["Tool", "PS"], ["Kerning", "100"]],
         desc: "I don't even know what I'm doing." },
       { name: "3D Art", icon: "art3d", qty: 1, rarity: 4,
         stats: [["LV", "4yrs"], ["Class", "Art"], ["Tool", "Maya"], ["Polys", "MANY"]],
         desc: "Either photorealism or very low poly. NO in-between." },
 
       { section: "Hobbies", id: "instruments", name: "Music", icon: "lute", qty: 1, rarity: 5,
-        stats: [["LV", "??"], ["Class", "Bard"], ["Inst", "6"], ["Theory", "12yrs"]],
+        stats: [["LV", "??"], ["Class", "Bard"], ["Inst", "7"], ["Theory", "12yrs"]],
         desc: "Instruments and music theory." },
       { under: "instruments", compact: true, name: "Piano", title: "ABRSM Grade 7", icon: "emblem:Pno:#e8e0d0:keys", qty: 1, rarity: 5,
         stats: [["Type", "Keys"], ["Experience", "10 yrs"]], desc: "ABRSM Grade 7." },
@@ -135,6 +136,8 @@ const TABS = [
         stats: [["Type", "Woodwind"], ["Experience", "ABRSM Gr. 5"], ["Orchestra", "5 yrs"]], desc: "ABRSM Grade 5, and five years in an orchestra." },
       { under: "instruments", compact: true, name: "Clarinet", icon: "emblem:Cl:#3a3a5a:note", qty: 1, rarity: 4,
         stats: [["Type", "Woodwind"], ["Experience", "1 yr"]], desc: "I was bored." },
+      { under: "instruments", compact: true, name: "Oboe", icon: "emblem:Ob:#7a4a24:note", qty: 1, rarity: 4,
+        stats: [["Type", "Woodwind"], ["Experience", "3 yrs"]], desc: "I actually really love it." },
       { under: "instruments", compact: true, name: "Violin", icon: "emblem:Vn:#c06a2a:strings", qty: 1, rarity: 4,
         stats: [["Type", "Strings"], ["Experience", "1 yr"]], desc: "Mom: We have the cello at home!" },
       { under: "instruments", compact: true, name: "Electric Bass", icon: "emblem:Bs:#3a6aff:strings", qty: 1, rarity: 4,
@@ -289,9 +292,6 @@ const TABS = [
       { under: "interests", compact: true, name: "Media Analyses", icon: "eye", qty: 1, rarity: 5,
         stats: [["Focus", "MAX"]], desc: "Breaking down films, shows, games, creepypasta, and books. Live, laugh, love theories." },
 
-      { name: "Fun Fact", icon: "skull", qty: 1, rarity: 3,
-        stats: [["Weird", "MIDDLE"], ["True", "100%"]],
-        desc: "Put a fun fact about yourself here." },
       { name: "Secret Item", icon: "key", qty: 1, rarity: 5,
         stats: [["Rarity", "S"], ["Found", "YOU!"]],
         desc: "You found the secret key. Tell me in DMs and I'll be impressed." },
@@ -1347,15 +1347,16 @@ function icon(name) {
 }
 
 // ============================================================
-//  Small pixel sprites: only the panel corners and the sword cursor.
+//  Small pixel sprites: only the panel corners and the arrow cursor.
 // ============================================================
 const K = "#0a0706";
 const SPRITES = {
-  sword: { pal: { k: K, w: "#f2efe6", s: "#9aa3ad", g: "#e9b64a", b: "#6b3a1e", o: "#b3201c" }, px: [
-    "..............kk", ".............kwk", "............kwsk", "...........kwsk.",
-    "..........kwsk..", ".........kwsk...", "........kwsk....", "..k....kwsk.....",
-    ".kgk..kwsk......", "..kgkkwsk.......", "...kgsk.........", "...kbgk.........",
-    "..kbkkgk........", ".kbk..kgk.......", "kok.....k.......", "kk.............."] },
+  // gold-framed arrow with an amber gem and little curls at the base
+  pointer: { pal: { k: "#1a0e06", g: "#e8c070", d: "#8a5a20", w: "#ffe6b8", o: "#e08a3a", r: "#a04a1a", b: "#4a1e0a" }, px: [
+    "kk..............", "kgk.............", "kggk............", "kgwgk...........",
+    "kgowgk..........", "kgoorgk.........", "kgorrrgk........", "kgorrrrgk.......",
+    "kgorrrrbgk......", "kgorrrbbbgk.....", "kgobbbbbbdgk....", "kgddddddddddk...",
+    "kgkkdgkkkkkkk...", "kgk.kdgk........", "kdk..kdk........", "kk....kk........"] },
   corner: { pal: { b: "#cdbd98", d: "#6b5a44" }, px: [
     "bbbbbbbbb.", "bddddddb..", "bdbbbbb...", "bdb...b.b.", "bdb....b..",
     "bdb...b.b.", "bdb.......", "bb.b......", "b...b.....", "b........."] },
@@ -1377,31 +1378,6 @@ function spriteSVG(name, { flipX = false, flipY = false, size, pal } = {}) {
 }
 const svgURL = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 
-// Diablo-style pixel orb, `frac` full (0-1).
-function orbSVG(frac, [dark, mid, light]) {
-  const N = 24, c = 11.5, level = 2 + (1 - frac) * 19;
-  let rects = "";
-  const px = (x, y, col) => { rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col}"/>`; };
-  for (let y = 0; y < N; y++) {
-    for (let x = 0; x < N; x++) {
-      const dx = x - c, dy = y - c, d = Math.hypot(dx, dy);
-      if (d > 11.6) continue;
-      if (d > 10.4) { px(x, y, dx + dy < 0 ? "#d6a35c" : "#5a3418"); continue; } // bronze rim
-      if (d > 9.6) { px(x, y, K); continue; }
-      const dither = (x + y) % 2 === 0;
-      if (y >= level) {
-        const t = d / 9.6;
-        let col = t > .78 ? dark : t > .45 ? (dither && t > .62 ? dark : mid) : (dither && t > .3 ? mid : light);
-        if (Math.floor(level) === y) col = light; // surface line
-        px(x, y, col);
-      } else {
-        px(x, y, dither && d > 7 ? "#120b0a" : "#1c1210");
-      }
-    }
-  }
-  [[7, 6], [8, 6], [7, 7], [6, 8]].forEach(([x, y]) => px(x, y, "rgba(255,255,255,.75)"));
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${N} ${N}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
-}
 
 // grimy noise + scratches tile, used as a texture layer on every panel
 function makeNoise() {
@@ -1433,7 +1409,8 @@ function initTorches() {
   // skull brazier on a curled iron bracket: blue-hot core, layered fire, rising sparks and smoke
   document.querySelectorAll("canvas.torch").forEach((c, ci) => {
     const W = 56, H = 84, CX = 28, BASE = 47;
-    c.width = W; c.height = H;
+    const RES = .5; // drawn at half resolution and shown with chunky pixels for a crunchier look
+    c.width = W * RES; c.height = H * RES;
     const x = c.getContext("2d"), parts = [];
     const iron = lin(x, 0, 0, W, 0, [[0, "#1a120c"], [.5, "#6a5a48"], [1, "#1a120c"]]);
     const gold = lin(x, 0, 40, 0, 52, [[0, "#fff1a8"], [.5, "#e0a030"], [1, "#6a3a08"]]);
@@ -1456,6 +1433,7 @@ function initTorches() {
     let t = 0;
     const frame = () => {
       t += 1 / 60;
+      x.setTransform(RES, 0, 0, RES, 0, 0);
       x.clearRect(0, 0, W, H);
       x.globalCompositeOperation = "lighter";
       const flick = .26 + Math.random() * .08;
@@ -1484,10 +1462,48 @@ function initTorches() {
       }
       x.globalCompositeOperation = "source-over";
       sconce(t);
-      if (!still) requestAnimationFrame(frame);
+      // retro finish: fewer colours, stepped transparency and fresh grain every frame
+      x.setTransform(1, 0, 0, 1, 0, 0);
+      const img = x.getImageData(0, 0, c.width, c.height), d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (!d[i + 3]) continue;
+        const n = (Math.random() - .5) * 34;
+        d[i] = Math.round((d[i] + n) / 36) * 36;
+        d[i + 1] = Math.round((d[i + 1] + n) / 36) * 36;
+        d[i + 2] = Math.round((d[i + 2] + n) / 36) * 36;
+        d[i + 3] = Math.min(255, Math.round(d[i + 3] / 64) * 64);
+      }
+      x.putImageData(img, 0, 0);
+      if (!still) setTimeout(() => requestAnimationFrame(frame), 33); // ~30fps, a little choppier like old sprites
     };
     frame();
   });
+}
+
+// Diablo-style pixel orb, `frac` full (0-1).
+function orbSVG(frac, [dark, mid, light]) {
+  const N = 24, c = 11.5, level = 2 + (1 - frac) * 19;
+  let rects = "";
+  const px = (x, y, col) => { rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col}"/>`; };
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const dx = x - c, dy = y - c, d = Math.hypot(dx, dy);
+      if (d > 11.6) continue;
+      if (d > 10.4) { px(x, y, dx + dy < 0 ? "#d6a35c" : "#5a3418"); continue; } // bronze rim
+      if (d > 9.6) { px(x, y, K); continue; }
+      const dither = (x + y) % 2 === 0;
+      if (y >= level) {
+        const t = d / 9.6;
+        let col = t > .78 ? dark : t > .45 ? (dither && t > .62 ? dark : mid) : (dither && t > .3 ? mid : light);
+        if (Math.floor(level) === y) col = light; // surface line
+        px(x, y, col);
+      } else {
+        px(x, y, dither && d > 7 ? "#120b0a" : "#1c1210");
+      }
+    }
+  }
+  [[7, 6], [8, 6], [7, 7], [6, 8]].forEach(([x, y]) => px(x, y, "rgba(255,255,255,.75)"));
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${N} ${N}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
 }
 
 // ============================================================
@@ -1507,8 +1523,9 @@ const openGroups = new Set(); // ids of expanded collapsible groups (e.g. an art
   root.setProperty("--corner-tr", svgURL(spriteSVG("corner", { flipX: true })));
   root.setProperty("--corner-bl", svgURL(spriteSVG("corner", { flipY: true })));
   root.setProperty("--corner-br", svgURL(spriteSVG("corner", { flipX: true, flipY: true })));
-  root.setProperty("--cursor", `${svgURL(spriteSVG("sword", { flipX: true, size: 32 }))} 1 1, auto`);
-  root.setProperty("--cursor-click", `${svgURL(spriteSVG("sword", { flipX: true, size: 32, pal: { w: "#ffe27a", s: "#e9b64a", g: "#ff4a3a" } }))} 1 1, pointer`);
+  root.setProperty("--cursor", `${svgURL(spriteSVG("pointer", { size: 32 }))} 1 1, auto`);
+  // over clickable things the gem lights up
+  root.setProperty("--cursor-click", `${svgURL(spriteSVG("pointer", { size: 32, pal: { w: "#ffffff", o: "#ffb04a", r: "#e0602a", b: "#8a2a0a" } }))} 1 1, pointer`);
 })();
 
 // discovered items persist per-visitor (nice-to-have; works without storage too)
@@ -1685,9 +1702,9 @@ function renderInspect() {
 }
 
 function renderFound() {
-  $("found").textContent = `${found.size}/${allKeys.length}`;
-  $("xp-text").textContent = `${found.size}/${allKeys.length}`;
-  $("xp-fill").style.width = (found.size / allKeys.length) * 100 + "%";
+  const n = found.size, total = allKeys.length;
+  $("xp-text").textContent = `${n}/${total}`;
+  $("xp-fill").style.width = (n / total) * 100 + "%";
 }
 
 function renderAll() { renderTabs(); renderList(); renderGear(); renderBag(); renderInspect(); renderFound(); }
@@ -1721,41 +1738,6 @@ function selectItem(key) {
   if (fresh && found.size === allKeys.length) {
     setTimeout(() => { chime(); say("Every relic discovered... you've seen it all. Thanks for snooping around. Come say hi :)"); }, 2400);
   }
-}
-
-// ---------- pixelated, dithered mini avatar ----------
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-function drawPortrait(img, canvas, size) {
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  const s = Math.min(img.naturalWidth, img.naturalHeight);
-  ctx.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, size, size);
-  try {
-    const data = ctx.getImageData(0, 0, size, size), d = data.data, step = 255 / 4;
-    for (let i = 0; i < d.length; i += 4) {
-      const p = i / 4, t = (BAYER[(p % size % 4) + ((Math.floor(p / size) % 4) * 4)] / 16 - .5) * step;
-      const l = d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11;
-      const r = l + (d[i] - l) * .7 + 10, g = l + (d[i + 1] - l) * .7, b = l + (d[i + 2] - l) * .7 - 12;
-      d[i] = Math.round((r + t) / step) * step;
-      d[i + 1] = Math.round((g + t) / step) * step;
-      d[i + 2] = Math.round((b + t) / step) * step;
-    }
-    ctx.putImageData(data, 0, 0);
-  } catch (e) { /* cross-origin image: still pixelated, just not dithered */ }
-}
-function loadPortrait() {
-  const canvas = $("mini-portrait");
-  const tryLoad = (cors) => {
-    const img = new Image();
-    if (cors) img.crossOrigin = "anonymous";
-    img.onload = () => drawPortrait(img, canvas, 36);
-    img.onerror = () => {
-      if (cors) return tryLoad(false);
-      canvas.outerHTML = `<div class="fallback">${icon("skull")}</div>`;
-    };
-    img.src = PLAYER.avatar;
-  };
-  tryLoad(true);
 }
 
 // ============================================================
@@ -1987,7 +1969,7 @@ if (document.fonts) document.fonts.ready.then(fitToWindow);
 
 // ---------- boot ----------
 document.title = PLAYER.name;
-syncSound(); renderSheet(); renderAll(); loadPortrait(); say(PLAYER.intro);
+syncSound(); renderSheet(); renderAll(); say(PLAYER.intro);
 initTorches();
 initCharacter();
 fitToWindow();

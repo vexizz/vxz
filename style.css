@@ -51,12 +51,41 @@ body {
   background-color: var(--bg);
   background-attachment: fixed;
 }
-/* CRT scanlines + slight vignette flicker */
+/* ---------- retro / Y2K screen filter ---------- */
+/* warm, punchy colour grade on the whole UI */
+.game { filter: contrast(1.07) saturate(1.12) sepia(.08) brightness(.98); }
+/* animated film grain */
+body::before {
+  content: "";
+  position: fixed; inset: -50%; z-index: 99;
+  pointer-events: none;
+  background: var(--noise) 0 0 / 160px 160px;
+  opacity: .7;
+  animation: grain .5s steps(5) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-6%, 4%); }
+  40% { transform: translate(5%, -7%); }
+  60% { transform: translate(-8%, -3%); }
+  80% { transform: translate(7%, 6%); }
+}
+/* CRT scanlines, corner shading and a faint flicker */
 body::after {
   content: "";
   position: fixed; inset: 0; z-index: 100;
   pointer-events: none;
-  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .25) 0 1px, transparent 1px 3px);
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, .45) 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .28) 0 1px, transparent 1px 3px);
+  animation: crt 6s steps(1) infinite;
+}
+@keyframes crt {
+  0%, 100% { opacity: 1; }
+  41% { opacity: .82; }
+  42% { opacity: 1; }
+  77% { opacity: .9; }
+  78% { opacity: 1; }
 }
 button, a { font: inherit; color: inherit; cursor: var(--cursor-click); }
 button { background: none; border: 0; padding: 0; }
@@ -151,7 +180,7 @@ svg { display: block; }
   color: var(--blood-hi);
   text-shadow: 2px 2px 0 var(--ink), 0 0 8px rgba(255, 74, 58, .8);
 }
-.torch { width: 56px; height: 84px; margin: -20px 0 -10px; image-rendering: auto; filter: drop-shadow(0 0 10px rgba(255, 120, 30, .55)); }
+.torch { width: 56px; height: 84px; margin: -20px 0 -10px; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(255, 120, 30, .55)); }
 .leds { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); display: flex; gap: 5px; }
 .leds i { width: 10px; height: 5px; background: var(--teal); box-shadow: 0 0 6px var(--teal); }
 .leds i:nth-child(2) { animation: led 1.6s steps(1) infinite; }
@@ -171,7 +200,7 @@ svg { display: block; }
 }
 .charhead .nm {
   font-family: var(--f-title); font-size: 30px; line-height: 1;
-  color: var(--teal); text-shadow: 0 0 8px rgba(62, 230, 196, .5), 2px 2px 0 var(--ink);
+  color: #c41e16; text-shadow: 0 0 8px rgba(200, 30, 20, .55), 2px 2px 0 var(--ink);
 }
 .charhead .lv { font-size: 11px; color: var(--bone); }
 
@@ -241,8 +270,7 @@ button.slot:hover { filter: brightness(1.2) saturate(1.15); }
 }
 @keyframes fog { to { transform: translateX(18%); } }
 .stage .fallback { position: absolute; inset: 0; display: grid; place-items: center; }
-.stage .fallback img, .mini .fallback img { width: 50%; }
-.mini .fallback img { width: 100%; }
+.stage .fallback img { width: 50%; }
 .rot { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: center; gap: 22px; z-index: 2; }
 .rot button {
   width: 34px; height: 26px;
@@ -298,25 +326,6 @@ button.slot:hover { filter: brightness(1.2) saturate(1.15); }
 
 /* ---------- middle ---------- */
 .mid { display: flex; flex-direction: column; gap: 10px; }
-.mini { flex: none; display: grid; grid-template-columns: 84px 1fr; gap: 10px; }
-.mini .thumb { width: 84px; height: 84px; padding: 3px; }
-.mini .thumb canvas, .mini .thumb .fallback { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
-.led-screen {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 6px;
-  background:
-    linear-gradient(var(--teal-dk) 1px, transparent 1px) 0 0 / 10px 10px,
-    linear-gradient(90deg, var(--teal-dk) 1px, transparent 1px) 0 0 / 10px 10px,
-    #021210;
-  border: 2px solid var(--ink);
-  box-shadow: inset 0 0 0 1px #1d5a50, inset 0 0 16px #000;
-  color: var(--teal);
-  text-shadow: 0 0 6px rgba(62, 230, 196, .8);
-}
-.led-screen .label { font-family: var(--f-tiny); font-size: 10px; }
-.led-screen .num { font-family: var(--f-term); font-size: 38px; line-height: 1; }
-.led-screen .hint { font-family: var(--f-term); font-size: 15px; color: #2aa892; text-shadow: none; }
-
 .inspect { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; scrollbar-color: var(--bone-dk) var(--ink); }
 .inspect .top { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; }
 .inspect h3 { margin: 0; font-family: var(--f-title); font-weight: 400; font-size: 30px; line-height: .9; color: var(--q, var(--gold)); text-shadow: 2px 2px 0 var(--ink); }
@@ -503,11 +512,6 @@ button.slot:hover { filter: brightness(1.2) saturate(1.15); }
   .dialog { height: 140px; font-size: 24px; }
   .dialog .who { font-size: 26px; }
 
-  .mini { grid-template-columns: 100px 1fr; }
-  .mini .thumb { width: 100px; height: 100px; }
-  .led-screen .label { font-size: 12px; }
-  .led-screen .num { font-size: 46px; }
-  .led-screen .hint { font-size: 18px; }
   .inspect .top { grid-template-columns: 112px 1fr; }
   .inspect .slot.big { width: 112px; }
   .inspect h3 { font-size: 36px; }
@@ -565,6 +569,11 @@ button.slot:hover { filter: brightness(1.2) saturate(1.15); }
   .torch { display: none; }
   .equipview { grid-template-columns: 44px 1fr 44px; }
 }
+/* Y2K red/cyan colour split on headings (kept last so it wins over the per-heading shadows) */
+.hud-top h1, .heading, .list-head b, .list-sub, .charhead .nm, .inspect h3, .btn.lobby {
+  text-shadow: -1.5px 0 rgba(255, 30, 70, .55), 1.5px 0 rgba(0, 220, 255, .45), 2px 2px 0 var(--ink);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
