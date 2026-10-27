@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vexizz</title>
+  <meta name="description" content="vexizz's character sheet. Click around and learn about me.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Jacquard+12&family=Pixelify+Sans:wght@400;600&family=Silkscreen&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="game">
+    <header class="hud-top ui">
+      <canvas class="torch" aria-hidden="true"></canvas>
+      <h1><span class="kanji">店</span> vexizz <span class="kanji">品</span></h1>
+      <canvas class="torch" aria-hidden="true"></canvas>
+      <div class="leds" aria-hidden="true"><i></i><i></i><i></i></div>
+    </header>
+
+    <div class="layout">
+      <!-- left: equip menu with rotatable character -->
+      <section class="ui char" aria-label="Character">
+        <div class="charhead"><span class="nm" id="name"></span><span class="lv tiny" id="klass"></span></div>
+        <div class="equipview">
+          <div class="gear" id="gear-left"></div>
+          <div class="stage" id="stage">
+            <span class="drag-hint tiny">drag to rotate</span>
+            <div class="rot">
+              <button id="rot-l" aria-label="Rotate left">↺</button>
+              <button id="rot-r" aria-label="Rotate right">↻</button>
+            </div>
+          </div>
+          <div class="gear" id="gear-right"></div>
+        </div>
+        <div class="bar"><i id="hp-fill"></i><span id="hp-text"></span></div>
+        <ul class="statlist" id="stats"></ul>
+        <div class="divider"></div>
+        <div class="dialog" aria-live="polite">
+          <span class="who" id="who"></span>
+          <span id="dialog-text"></span> <span class="caret">▼</span>
+        </div>
+      </section>
+
+      <!-- middle: discovered, inspect, bag -->
+      <section class="mid">
+        <div class="ui mini">
+          <div class="thumb well"><canvas id="mini-portrait" aria-label="vexizz's avatar"></canvas></div>
+          <div class="led-screen">
+            <span class="label">DISCOVERED</span>
+            <span class="num" id="found">0/0</span>
+            <span class="hint">click items to discover</span>
+          </div>
+        </div>
+
+        <div class="ui inspect" id="inspect"></div>
+
+        <div class="ui bag">
+          <h2 class="heading">Bag <span class="kanji">鞄</span></h2>
+          <div class="baggrid well" id="bag"></div>
+          <div class="bagfoot tiny"><span>? = undiscovered</span><b id="bag-count"></b></div>
+        </div>
+      </section>
+
+      <!-- right: skill-slot tabs + item list -->
+      <section class="ui right">
+        <div class="tabs well" role="tablist" id="tabs" aria-label="Sections"></div>
+        <div class="list-head"><b id="list-title"></b><span class="tiny" id="list-count"></span></div>
+        <div class="list well" id="list" role="tabpanel"></div>
+      </section>
+    </div>
+
+    <footer class="ui actionbar">
+      <div class="orb hp"><div id="orb-hp"></div><span class="tiny" id="orb-hp-text"></span></div>
+      <div class="center">
+        <div class="xp">
+          <div class="row tiny"><span>RELICS DISCOVERED</span><b id="xp-text"></b></div>
+          <div class="xpbar"><i id="xp-fill"></i></div>
+        </div>
+        <div class="controls">
+          <span class="tip">press <kbd>1</kbd>-<kbd>6</kbd> to switch slots ✦ come say hi on discord</span>
+          <div class="btns">
+            <button class="btn" id="sound" aria-pressed="true">SND ON</button>
+            <button class="btn lobby" id="lobby">Go to Lobby</button>
+          </div>
+        </div>
+      </div>
+      <div class="orb mp"><div id="orb-mp"></div><span class="tiny" id="orb-mp-text"></span></div>
+    </footer>
+  </div>
+</body>
+</html>
