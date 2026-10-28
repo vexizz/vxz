@@ -203,6 +203,18 @@ svg { display: block; }
   color: #c41e16; text-shadow: 0 0 8px rgba(200, 30, 20, .55), 2px 2px 0 var(--ink);
 }
 .charhead .lv { font-size: 11px; color: var(--bone); }
+/* label text that's too long for its box scrolls in a loop (see marquee() in script.js) */
+.mq-view { display: block; width: 100%; overflow: hidden; text-align: center; }
+.mq { display: inline-flex; width: max-content; }
+.mq > span { flex: none; }
+.scrolling .mq-view {
+  text-align: left;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent);
+}
+.scrolling .mq > span { padding-right: 2.5em; }
+.scrolling .mq { animation: mq var(--mq-dur, 10s) linear infinite; }
+@keyframes mq { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 
 .equipview {
   flex: 1; min-height: 0;
@@ -387,9 +399,11 @@ body.dragging-item .gear .slot { outline: 1px dashed rgba(255, 209, 0, .55); out
 
 /* ---------- right: skill-slot tabs + list ---------- */
 .right { display: flex; flex-direction: column; gap: 10px; }
-.tabs { flex: none; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 5px; }
+/* minmax(0, ...) lets the slots shrink below their 64px icons on narrow phones instead of overflowing */
+.tabs { flex: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; padding: 5px; }
 .tab {
   position: relative;
+  min-width: 0;
   aspect-ratio: 1;
   padding: 2px;
   background: #000;

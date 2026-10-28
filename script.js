@@ -1758,10 +1758,28 @@ function card(key) {
   </button>`;
 }
 
+// Puts text in a label box; if it's too long to fit (e.g. on phones), it scrolls left to right in a
+// seamless loop: two copies sit side by side and the pair slides along by one copy's width.
+function marquee(el, text) {
+  el.innerHTML = `<span class="mq-view"><span class="mq"><span>${esc(text)}</span></span></span>`;
+  const view = el.firstChild, track = view.firstChild, copy = track.firstChild;
+  const fit = () => {
+    const gap = el.classList.contains("scrolling") ? parseFloat(getComputedStyle(copy).paddingRight) : 0;
+    const long = copy.offsetWidth - gap > view.clientWidth;
+    el.classList.toggle("scrolling", long);
+    if (long && track.children.length === 1) {
+      const twin = copy.cloneNode(true); twin.setAttribute("aria-hidden", "true"); track.append(twin);
+    } else if (!long && track.children.length > 1) track.lastChild.remove();
+    track.style.setProperty("--mq-dur", copy.offsetWidth / 30 + "s"); // ~30px per second
+  };
+  new ResizeObserver(fit).observe(el);
+  document.fonts.ready.then(fit); // the pixel font is wider than the fallback, so measure again once it's in
+}
+
 function renderSheet() {
   const p = PLAYER;
   $("name").textContent = p.name;
-  $("klass").textContent = `Lv ${p.level} / ${p.class}`;
+  marquee($("klass"), `Lv ${p.level} / ${p.class}`);
   $("hp-fill").style.width = Math.round((p.hp[0] / p.hp[1]) * 100) + "%";
   $("hp-text").textContent = `HP ${p.hp[0]}/${p.hp[1]}`;
   $("stats").innerHTML =
@@ -1912,14 +1930,110 @@ function initCharacter() {
   const ramp = new T.DataTexture(new Uint8Array([70, 150, 255]), 3, 1, T.LuminanceFormat);
   ramp.minFilter = ramp.magFilter = T.NearestFilter; ramp.needsUpdate = true;
   const mats = {};
-  const toon = (hex) => mats[hex] || (mats[hex] = new T.MeshToonMaterial({ color: hex, gradientMap: ramp }));
+  const toon = (hex) => mats[hex] || (mats[hex] = new T.MeshToonMaterial({ color: hex, gradientMap: ramp, map: TEX.get(hex) || null, alphaTest: hex === COL.mask ? .5 : 0 }));
   const outlineMat = new T.MeshBasicMaterial({ color: 0x0a0706, side: T.BackSide });
 
+  // hooded wanderer: dark cloak and fox-eared hood, grey fur mantle, slate wrap tunic,
+  // bandaged arms and shins, white grinning mask. Cloth and fur get the textures below
+  // (cloak and tunic colours are set lighter because their textures darken them).
   const COL = {
-    skin: 0xf8e4d8, hair: 0x1b1519, white: 0xf3efe9, cream: 0xe6d8c2, pink: 0xe7a9b8,
-    lilac: 0xa9b6dc, ribbon: 0x5a1f2e, tights: 0xf4f0f0, boot: 0xdedbd6, steel: 0x8d939b,
-    bronze: 0xb5793a, eye: 0xc0201a,
+    skin: 0xe8dcd4, hair: 0x070608, hood: 0x140705, hoodInner: 0x301209, cloak: 0x260d08,
+    tunic: 0x34130b, sash: 0x100604, pants: 0x120705, boot: 0x0c0503, glove: 0x100604,
+    wrap: 0x6e6462, fur: 0x8e8686, strap: 0x2e1a14, buckle: 0xa08a7a, stitch: 0xa09894,
+    mask: 0xcac2ba, bone: 0xb8b0a8, maskLine: 0x5a5456, ink: 0x09090c,
+    blade: 0x3e3638, shaft: 0x3e281b, glow: 0xff2a3a,
   };
+  const grit = clothTexture();
+  // tunic: diamond-quilted padding, a pale stitch where the seams cross and a soft puff in each diamond
+  const quilt = clothTexture("#a4a4a4", (g) => {
+    g.strokeStyle = "rgba(25,25,35,.75)";
+    for (let k = -64; k < 64; k += 16) {
+      g.beginPath(); g.moveTo(k, 0); g.lineTo(k + 64, 64); g.stroke();
+      g.beginPath(); g.moveTo(k + 64, 0); g.lineTo(k, 64); g.stroke();
+    }
+    for (let y = 0; y < 64; y += 8) for (let x = 0; x < 64; x += 8) {
+      g.fillStyle = (x + y) % 16 ? "rgba(255,255,255,.22)" : "rgba(235,230,220,.9)";
+      (x + y) % 16 ? g.fillRect(x - 1, y - 1, 3, 3) : g.fillRect(x, y, 1, 1);
+    }
+  }, 3, 1);
+  // cloak: heavy cloth hanging in vertical folds, lighter ridges and dark creases, a few scuffs
+  const folds = clothTexture("#9c9c9c", (g) => {
+    for (let x = 0; x < 64;) {
+      const w = 2 + Math.random() * 4 | 0;
+      g.fillStyle = Math.random() < .5 ? `rgba(255,255,255,${.12 + Math.random() * .2})` : `rgba(0,0,0,${.15 + Math.random() * .2})`;
+      g.fillRect(x, 0, w, 64); x += w;
+    }
+    g.fillStyle = "rgba(255,255,255,.25)";
+    for (let i = 0; i < 12; i++) g.fillRect(Math.random() * 60 | 0, Math.random() * 64 | 0, 3 + Math.random() * 5 | 0, 1);
+  }, 4, 1);
+  // mask: worn bone with hairline cracks, stains, and chips bitten out of the edges (see-through, via alphaTest)
+  const cracked = clothTexture("#d4d0cc", (g) => {
+    g.strokeStyle = "rgba(20,14,14,.85)";
+    for (let i = 0; i < 6; i++) {
+      let x = Math.random() * 64, y = Math.random() * 64, a = Math.random() * PI * 2;
+      g.beginPath(); g.moveTo(x, y);
+      for (let s = 0; s < 8 + Math.random() * 8; s++) {
+        a += (Math.random() - .5) * 1.2; x += Math.cos(a) * 3; y += Math.sin(a) * 3;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    g.globalCompositeOperation = "destination-out";
+    for (let i = 0; i < 16; i++) {
+      const t = Math.random() * 64, side = i % 4, r = 2 + Math.random() * 3;
+      const [x, y] = [[t, 0], [t, 64], [0, t], [64, t]][side];
+      g.beginPath(); g.arc(x, y, r, 0, PI * 2); g.fill();
+    }
+    g.globalCompositeOperation = "source-over";
+  });
+  // scythe pole: old weathered wood, dark grain running along its length with a few pale scratches
+  const grain = clothTexture("#a8a8a8", (g) => {
+    for (let x = 0; x < 64; x++) {
+      if (Math.random() < .45) { g.fillStyle = `rgba(0,0,0,${.25 + Math.random() * .4})`; g.fillRect(x, 0, 1, 64); }
+    }
+    g.fillStyle = "rgba(235,220,200,.35)";
+    for (let i = 0; i < 8; i++) g.fillRect(Math.random() * 64 | 0, Math.random() * 64 | 0, 1, 4 + Math.random() * 8 | 0);
+  }, 1, 3);
+  // scythe blades: blood smeared along the steel, darker where it has pooled, with a few thin runs
+  const bloodied = clothTexture("#ffffff", (g) => {
+    for (let i = 0; i < 14; i++) {
+      const x = Math.random() * 64, y = Math.random() * 64, r = 2 + Math.random() * 7;
+      const grd = g.createRadialGradient(x, y, 0, x, y, r);
+      grd.addColorStop(0, "rgba(90,4,10,.85)"); grd.addColorStop(.7, "rgba(120,10,16,.5)"); grd.addColorStop(1, "rgba(120,10,16,0)");
+      g.fillStyle = grd; g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    g.fillStyle = "rgba(80,4,8,.8)";
+    for (let i = 0; i < 8; i++) g.fillRect(Math.random() * 64 | 0, Math.random() * 64 | 0, 1, 4 + Math.random() * 10 | 0);
+  }, 1.5, 1.5);
+  const TEX = new Map([[COL.blade, bloodied], [COL.shaft, grain], [COL.hood, grit], [COL.cloak, folds], [COL.tunic, quilt], [COL.fur, grit], [COL.wrap, grit], [COL.pants, grit], [COL.strap, grit], [COL.mask, cracked], [COL.bone, grit]]);
+  // 64px cloth texture: a base tone, an optional pattern, then grime on top: soft stains (some rust-red),
+  // dark specks and faint vertical drips. White means "no change"; darker greys darken the colour.
+  function clothTexture(base = "#fff", pattern = null, repeatX = 1, repeatY = 1) {
+    const cv = document.createElement("canvas"); cv.width = cv.height = 64;
+    const g = cv.getContext("2d");
+    g.fillStyle = base; g.fillRect(0, 0, 64, 64);
+    if (pattern) pattern(g);
+    for (let i = 0; i < 18; i++) {
+      const x = Math.random() * 64, y = Math.random() * 64, r = 3 + Math.random() * 9;
+      const grd = g.createRadialGradient(x, y, 0, x, y, r);
+      grd.addColorStop(0, Math.random() < .3 ? "rgba(120,50,45,.35)" : "rgba(90,80,70,.3)");
+      grd.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = grd; g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    for (let i = 0; i < 260; i++) {
+      g.fillStyle = `rgba(40,30,30,${Math.random() * .35})`;
+      g.fillRect(Math.random() * 64 | 0, Math.random() * 64 | 0, 1, 1);
+    }
+    for (let i = 0; i < 10; i++) {
+      g.fillStyle = "rgba(70,55,50,.18)";
+      g.fillRect(Math.random() * 64 | 0, Math.random() * 30 | 0, 1, 10 + Math.random() * 30);
+    }
+    const tex = new T.CanvasTexture(cv);
+    tex.magFilter = tex.minFilter = T.NearestFilter;
+    tex.wrapS = tex.wrapT = T.RepeatWrapping;
+    tex.repeat.set(repeatX, repeatY);
+    return tex;
+  }
   const S = (r, w = 16, h = 12) => new T.SphereGeometry(r, w, h);
   const C = (rt, rb, h, s = 12) => new T.CylinderGeometry(rt, rb, h, s);
 
@@ -1932,75 +2046,245 @@ function initCharacter() {
     parent.add(m);
     return m;
   }
+  // open shells (hood, cloak) are seen from inside too, so they're drawn double-sided
+  const sideless = {};
+  const twoSided = (m) => {
+    const hex = m.material.color.getHex();
+    m.material = sideless[hex] || (sideless[hex] = new T.MeshToonMaterial({ color: hex, gradientMap: ramp, map: TEX.get(hex) || grit, side: T.DoubleSide }));
+    return m;
+  };
+  const band = (r, y, color, parent = body, tube = .012) => part(new T.TorusGeometry(r, tube, 4, 16), color, { pos: [0, y, 0], rot: [PI / 2, 0, 0], parent, outline: 0 });
+  const rand = (n) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); }; // repeatable 0-1 noise
 
-  // legs + boots
+  // legs: dark trousers, shins wrapped in bandages, flat black boots
   for (const s of [-1, 1]) {
-    part(C(.075, .065, .5), COL.tights, { pos: [s * .1, .42, 0] });
-    part(C(.1, .11, .26), COL.boot, { pos: [s * .1, .13, 0] });
-    part(C(.118, .118, .05), COL.cream, { pos: [s * .1, .27, 0], outline: .03 });
-    part(S(.09), COL.boot, { pos: [s * .1, .03, .06], scale: [1, .6, 1.4] });
+    const leg = new T.Group(); leg.position.x = s * .1; body.add(leg);
+    part(C(.075, .065, .5), COL.pants, { pos: [0, .42, 0], parent: leg });
+    part(C(.072, .078, .26), COL.wrap, { pos: [0, .3, 0], parent: leg, outline: .03 });
+    for (let y = .2; y < .43; y += .045) band(.077 - (y - .2) * .02, y, 0x4e3a3a, leg, .006);
+    part(C(.085, .095, .18), COL.boot, { pos: [0, .09, 0], parent: leg });
+    part(S(.09), COL.boot, { pos: [0, .03, .06], scale: [1, .6, 1.4], parent: leg });
   }
-  // skirt, petticoat and hem
-  // points listed top-to-bottom; reversed so the faces point outward
-  const lathe = (pts) => new T.LatheGeometry(pts.slice().reverse().map(([x, y]) => new T.Vector2(x, y)), 18);
-  part(lathe([[.4, 0], [.5, -.1], [.57, -.2], [.57, -.22]]), COL.pink, { pos: [0, .8, 0], outline: .03 });
-  part(lathe([[.17, .2], [.22, .14], [.32, .04], [.42, -.08], [.5, -.18], [.5, -.2]]), COL.white, { pos: [0, .82, 0], outline: .03 });
-  part(new T.TorusGeometry(.5, .025, 6, 24), COL.cream, { pos: [0, .62, 0], rot: [PI / 2, 0, 0], outline: .02 });
-  // torso, corset, collar and jabot
-  part(C(.16, .21, .38), COL.white, { pos: [0, 1.17, 0] });
-  part(C(.168, .2, .2), COL.ribbon, { pos: [0, 1.08, 0], outline: .02 });
-  part(new T.TorusGeometry(.13, .045, 6, 16), COL.white, { pos: [0, 1.38, 0], rot: [PI / 2, 0, 0] });
-  for (let i = 0; i < 4; i++) part(S(.07 - i * .008), COL.cream, { pos: [0, 1.33 - i * .07, .17], scale: [1.4, .6, .6], outline: .04 });
-  part(S(.05), COL.pink, { pos: [-.06, 1.4, .12], scale: [1.3, .8, .6], outline: .05 });
-  part(S(.05), COL.pink, { pos: [.06, 1.4, .12], scale: [1.3, .8, .6], outline: .05 });
-  // arms in a little "ta-da" pose
+  // wrap tunic, sash and a strap slung across the chest with a buckle
+  part(C(.2, .27, .3, 16), COL.tunic, { pos: [0, .87, 0] });
+  part(C(.16, .21, .38), COL.tunic, { pos: [0, 1.17, 0] });
+  for (const s of [-1, 1]) part(new T.BoxGeometry(.05, .3, .02), 0x240c07, { pos: [s * .045, 1.22, .185], rot: [-.13, 0, s * .35], outline: 0 }); // crossed lapels
+  part(C(.215, .22, .08), COL.sash, { pos: [0, 1.0, 0], outline: .03 });
+  const bandolier = new T.Group(); bandolier.position.set(0, 1.15, 0); bandolier.rotation.z = .7; body.add(bandolier);
+  part(new T.TorusGeometry(.32, .018, 5, 28), COL.strap, { rot: [0, PI / 2, 0], scale: [.68, 1, 1], parent: bandolier, outline: .03 });
+  part(new T.BoxGeometry(.012, .07, .06), COL.buckle, { pos: [0, 0, .225], rot: [0, PI / 2, 0], parent: bandolier, outline: .1 });
+  part(C(.05, .06, .12), COL.sash, { pos: [0, 1.43, 0], outline: 0 }); // high black collar
+
+  // arms: slate sleeves, bandaged forearms, black gloves
   for (const s of [-1, 1]) {
-    part(S(.13), COL.white, { pos: [s * .24, 1.3, 0] });
+    part(S(.13), COL.tunic, { pos: [s * .24, 1.3, 0] });
     const arm = new T.Group();
     arm.position.set(s * .26, 1.3, 0); arm.rotation.z = s * .55;
     body.add(arm);
-    part(C(.055, .05, .42), COL.white, { pos: [0, -.26, 0], parent: arm });
-    part(C(.06, .11, .12), COL.cream, { pos: [0, -.48, 0], parent: arm });
-    part(S(.055), COL.skin, { pos: [0, -.57, 0], parent: arm });
+    part(C(.058, .055, .24), COL.tunic, { pos: [0, -.17, 0], parent: arm });
+    part(C(.054, .05, .24), COL.wrap, { pos: [0, -.39, 0], parent: arm, outline: .03 });
+    for (let y = -.3; y > -.5; y -= .04) band(.054, y, 0x4e3a3a, arm, .006);
+    part(S(.058), COL.glove, { pos: [0, -.56, 0], scale: [1, 1.15, 1], parent: arm });
   }
-  part(C(.05, .06, .1), COL.skin, { pos: [0, 1.43, 0], outline: 0 });
+
+  // long tattered cloak hanging from the shoulders, open at the front, its hem torn into ragged points
+  const cloakGeo = new T.CylinderGeometry(.27, .5, 1.25, 30, 1, true, .75, PI * 2 - 1.5);
+  const cp = cloakGeo.attributes.position;
+  for (let i = 0; i < cp.count; i++) {
+    if (cp.getY(i) > 0) continue; // only the hem
+    const tear = (i % 2 ? .05 : .2) * rand(i) + (rand(i + 50) < .2 ? .18 : 0);
+    cp.setY(i, cp.getY(i) + tear);
+  }
+  cloakGeo.computeVertexNormals();
+  const cloak = twoSided(part(cloakGeo, COL.cloak, { pos: [0, .74, -.02], outline: .02 }));
+
+  // shaggy grey fur mantle round the shoulders: a thick ring plus ragged tufts hanging off it
+  part(new T.TorusGeometry(.22, .1, 8, 20), COL.fur, { pos: [0, 1.37, -.01], rot: [PI / 2, 0, 0], scale: [1.15, 1, 1] });
+  for (let i = 0; i < 20; i++) {
+    const a = i / 20 * PI * 2, r = .3 + rand(i + 9) * .04;
+    part(new T.ConeGeometry(.05, .16 + rand(i) * .1, 4), COL.fur, {
+      pos: [Math.cos(a) * r * 1.1, 1.29 - rand(i + 3) * .04, Math.sin(a) * r],
+      rot: [Math.sin(a) * 2.6, 0, -Math.cos(a) * 2.6], outline: .06,
+    });
+  }
 
   // head
   const head = new T.Group(); head.position.set(0, 1.72, 0); body.add(head);
-  part(S(.33, 20, 16), COL.skin, { parent: head, scale: [1, .95, .95] });
+  part(S(.33, 20, 16), COL.ink, { parent: head, scale: [1, .95, .95] }); // dark, so chips in the mask read as holes
+  // black hair: locks at the sides of the mask and long bangs swept across it from right to left
+  // (maskZ = how far forward the mask's surface is at x, y, so strands sit just on top of it)
+  const maskZ = (x, y) => Math.sqrt(Math.max(0, .119 - x * x - y * y));
   for (const s of [-1, 1]) {
-    part(S(.06, 10, 8), COL.eye, { pos: [s * .12, -.04, .29], scale: [.75, 1.1, .35], parent: head, outline: .2 });
-    part(S(.018, 6, 6), 0xffffff, { pos: [s * .12 + .015, 0, .315], parent: head, outline: 0 });
-    part(S(.035, 8, 6), COL.pink, { pos: [s * .18, -.12, .27], scale: [1.3, .6, .3], parent: head, outline: 0 });
+    for (let k = 0; k < 3; k++) {
+      part(S(.07, 8, 6), COL.hair, { pos: [s * (.28 + k * .02), .08 - k * .13, .15 - k * .03], rot: [0, 0, s * (.2 + k * .15)], scale: [.6, 1.5, .5], parent: head, outline: .06 });
+    }
   }
-  part(S(.015, 6, 6), 0x8a3a3a, { pos: [0, -.15, .31], scale: [1.5, .6, .5], parent: head, outline: 0 });
-  // hair: cap, straight hime bangs, side locks and long back hair
-  part(new T.SphereGeometry(.355, 20, 14, 0, PI * 2, 0, PI * .45), COL.hair, { pos: [0, .02, -.01], rot: [-.3, 0, 0], parent: head });
-  part(S(.34), COL.hair, { pos: [0, -.02, -.17], scale: [1.04, 1.04, .85], parent: head });
-  for (let i = -3; i <= 3; i++) part(S(.07, 8, 6), COL.hair, { pos: [i * .075, .1, .3 - Math.abs(i) * .03], scale: [.7, 1.1, .5], parent: head, outline: .06 });
-  for (const s of [-1, 1]) part(new T.BoxGeometry(.09, .55, .08), COL.hair, { pos: [s * .29, -.32, .1], parent: head });
-  const backHair = part(C(.3, .38, .9, 14), COL.hair, { pos: [0, -.55, -.18], scale: [1, 1, .55], parent: head });
-  // bunny ears + bow
-  const ears = [];
-  for (const s of [-1, 1]) {
-    const ear = new T.Group();
-    ear.position.set(s * .13, .3, -.02); ear.rotation.set(-.15, 0, -s * .2 + (s > 0 ? -.25 : 0));
-    head.add(ear); ears.push(ear);
-    part(S(.1, 12, 10), COL.white, { pos: [0, .32, 0], scale: [.55, 2.2, .3], parent: ear });
-    part(S(.1, 10, 8), COL.pink, { pos: [0, .32, .025], scale: [.3, 1.7, .15], parent: ear, outline: 0 });
+  // bangs: a cap of hair just over the mask whose lower edge is pulled up onto a diagonal hairline
+  // (high on the right, low over the left eye), cut into slanted points so it reads as swept strands
+  const BANG_R = .356, bangGeo = new T.SphereGeometry(BANG_R, 40, 16, PI / 2 - 1.15, 2.3, 0, PI * .56);
+  const bp = bangGeo.attributes.position;
+  for (let i = 0; i < bp.count; i++) {
+    const x = bp.getX(i), f = ((x + 1) / .075) % 1; // f: how far along one strand
+    const edge = .08 + .3 * x - .06 * f;
+    if (bp.getY(i) < edge) bp.setXYZ(i, x, edge, Math.sqrt(Math.max(0, BANG_R * BANG_R - x * x - edge * edge)));
   }
-  part(S(.06), COL.ribbon, { pos: [-.24, .22, .14], scale: [1.4, .8, .6], parent: head });
-  part(S(.06), COL.ribbon, { pos: [-.12, .26, .2], scale: [1.4, .8, .6], parent: head });
+  bangGeo.computeVertexNormals();
+  part(bangGeo, COL.hair, { pos: [0, 0, .005], parent: head, outline: .03 });
 
-  // big spiked round shield on her back
-  const shield = new T.Group(); shield.position.set(0, 1.15, -.42); shield.rotation.set(.15, 0, .35); body.add(shield);
-  part(C(.55, .55, .06, 24), COL.steel, { rot: [PI / 2, 0, 0], parent: shield, outline: .02 });
-  part(new T.TorusGeometry(.55, .05, 6, 24), COL.bronze, { parent: shield, outline: .02 });
-  part(S(.12), COL.bronze, { pos: [0, 0, -.06], scale: [1, 1, .6], parent: shield });
-  part(S(.04, 8, 6), COL.eye, { pos: [0, 0, -.13], parent: shield, outline: .2 });
+  // white mask: slanted black eyes ringed in grey with a pin of light, arched brows, a nose ridge,
+  // ink tear lines, a hairline crack down one cheek and a wide grin full of jagged teeth
+  const maskGeo = new T.SphereGeometry(.345, 20, 14, PI / 2 - .95, 1.9, PI * .3, PI * .5);
+  const mp = maskGeo.attributes.position;
+  for (let i = 0; i < mp.count; i++) { const k = 1 + (rand(i + 7) - .5) * .03; mp.setXYZ(i, mp.getX(i) * k, mp.getY(i) * k, mp.getZ(i) * k); } // lumpy, hand-made surface
+  maskGeo.computeVertexNormals();
+  part(maskGeo, COL.mask, { parent: head, outline: .03 });
+  part(new T.ConeGeometry(.12, .14, 12), COL.bone, { pos: [0, -.28, .2], rot: [PI, 0, 0], scale: [1.2, 1, .5], parent: head, outline: .03 }); // pointed chin
+  const shine = new T.MeshBasicMaterial({ color: 0xd8d0cc });
+  for (const s of [-1, 1]) {
+    part(S(.075, 14, 10), COL.ink, { pos: [s * .115, -.02, .315], rot: [0, 0, s * .35], scale: [1.15, .9, .35], parent: head, outline: 0 });
+    part(new T.TorusGeometry(.075, .008, 4, 20), COL.maskLine, { pos: [s * .115, -.02, .328], rot: [0, 0, s * .35], scale: [1.15, .9, 1], parent: head, outline: 0 });
+    part(new T.TorusGeometry(.095, .009, 4, 12, PI * .6), COL.ink, { pos: [s * .115, -.01, .33], rot: [0, 0, PI * .2 + s * .35], parent: head, outline: 0 });
+    const dot = new T.Mesh(S(.016, 6, 6), shine); dot.position.set(s * .115, -.015, .345); head.add(dot);
+    part(new T.BoxGeometry(.008, .07, .008), COL.ink, { pos: [s * .12, -.125, .31], rot: [-.3, 0, 0], parent: head, outline: 0 });
+    part(new T.BoxGeometry(.006, .04, .006), COL.ink, { pos: [s * .095, -.11, .315], rot: [-.3, 0, 0], parent: head, outline: 0 });
+  }
+  part(new T.BoxGeometry(.008, .09, .008), COL.maskLine, { pos: [0, .05, .342], rot: [-.15, 0, 0], parent: head, outline: 0 });
+  for (const [x0, y0, x1, y1] of [[.21, .06, .18, -.02], [.18, -.02, .21, -.09], [.21, -.09, .17, -.17]]) {
+    const x = (x0 + x1) / 2, y = (y0 + y1) / 2;
+    part(new T.BoxGeometry(.006, Math.hypot(x1 - x0, y1 - y0), .006), COL.maskLine, { pos: [x, y, maskZ(x, y) + .004], rot: [0, 0, Math.atan2(x0 - x1, y0 - y1)], parent: head, outline: 0 });
+  }
+  // grin: corners curl up; the top edge is a shallow curve and the bottom a deep one
+  const grin = new T.Shape(), edge = (u, d) => -.1 - d * (1 - u * u);
+  for (let i = 0; i <= 16; i++) { const u = i / 8 - 1; grin[i ? "lineTo" : "moveTo"](u * .14, edge(u, .025)); }
+  for (let i = 16; i >= 0; i--) { const u = i / 8 - 1; grin.lineTo(u * .14, edge(u, .08)); }
+  const mouth = new T.Mesh(new T.ExtrudeGeometry(grin, { depth: .025, bevelEnabled: false }), toon(COL.ink));
+  mouth.position.z = .3; head.add(mouth);
+  for (const u of [-.6, -.3, 0, .3, .6]) part(new T.ConeGeometry(.014, .035, 3), COL.bone, { pos: [u * .14, edge(u, .025) - .016, .33], rot: [0, 0, PI], parent: head, outline: 0 });
+  for (const u of [-.45, -.15, .15, .45]) part(new T.ConeGeometry(.014, .035, 3), COL.bone, { pos: [u * .14, edge(u, .08) + .016, .33], parent: head, outline: 0 });
+
+  // hood: shell open over the face, a brim that peaks down over the forehead, tall fox ears and white stitches
+  twoSided(part(new T.SphereGeometry(.4, 20, 14, PI / 2 + .6, PI * 2 - 1.2, 0, PI * .75), COL.hood, { pos: [0, .03, -.03], parent: head, outline: .03 }));
+  twoSided(part(new T.SphereGeometry(.4, 20, 8, 0, PI * 2, 0, PI * .27), COL.hood, { pos: [0, .03, 0], scale: [1, 1, 1.1], parent: head, outline: .03 }));
+  part(new T.ConeGeometry(.07, .14, 3), COL.hood, { pos: [0, .25, .39], rot: [PI - .3, 0, 0], scale: [1, 1, .4], parent: head, outline: .06 });
+  for (const s of [-1, 1]) {
+    const ear = new T.Group(); ear.position.set(s * .2, .36, -.03); ear.rotation.set(-.1, 0, -s * .3); head.add(ear);
+    part(new T.ConeGeometry(.14, .5, 4), COL.hood, { pos: [0, .2, 0], scale: [1, 1, .5], parent: ear, outline: .04 });
+    part(new T.ConeGeometry(.08, .34, 4), COL.hoodInner, { pos: [0, .15, .045], scale: [1, 1, .3], parent: ear, outline: 0 });
+  }
+  for (const a of [-.9, -.55, -.2, .15, .5]) { // along the seam over the top of the hood
+    part(new T.BoxGeometry(.06, .014, .014), COL.stitch, { pos: [0, .03 + Math.cos(a) * .405, -.03 + Math.sin(a) * .405], rot: [a, 0, 0], parent: head, outline: 0 });
+  }
+
+  // double-bladed scythe slung across her back
+  // crescent band between radius R - width*hi and R - width*lo, from angle a0 to a1, tapering to a point;
+  // spikes = positions (0-1) along the back edge that get a little thorn
+  function crescent(R, width, a0, a1, lo, hi, spikes = []) {
+    const outer = [], inner = [], N = 60;
+    for (let i = 0; i <= N; i++) {
+      const t = i / N, a = a0 + (a1 - a0) * t, wt = width * Math.pow(1 - t, .85);
+      const thorn = spikes.reduce((m, st) => Math.max(m, .07 * (1 - Math.abs(t - st) / .04)), 0);
+      outer.push([Math.cos(a) * (R - wt * lo + thorn), Math.sin(a) * (R - wt * lo + thorn)]);
+      inner.push([Math.cos(a) * (R - wt * hi), Math.sin(a) * (R - wt * hi)]);
+    }
+    const shape = new T.Shape();
+    shape.moveTo(...outer[0]);
+    outer.slice(1).forEach((p) => shape.lineTo(...p));
+    inner.reverse().forEach((p) => shape.lineTo(...p));
+    return shape;
+  }
+  // a flat extruded shape, re-centred so its outline scales around the middle
+  function slab(shape, depth, mat, parent, [ox, oy]) {
+    const geo = new T.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
+    geo.computeBoundingBox();
+    const c = new T.Vector3(); geo.boundingBox.getCenter(c); geo.translate(-c.x, -c.y, -c.z);
+    const m = new T.Mesh(geo, mat); m.position.set(c.x + ox, c.y + oy, 0); parent.add(m);
+    return m;
+  }
+  const glowMat = new T.MeshBasicMaterial({ color: COL.glow });
+  const scythe = new T.Group(); scythe.position.set(0, 1.15, -.42); scythe.rotation.set(.08, 0, .85); body.add(scythe);
+  const SHAFT = 2, BLADE_R = .48, BLADE_W = .16;
+  part(C(.03, .03, SHAFT, 8), COL.shaft, { parent: scythe, outline: .15 });
+  for (const y of [-.5, -.17, .17, .5]) part(new T.TorusGeometry(.042, .014, 5, 10), 0x24160f, { pos: [0, y, 0], rot: [PI / 2, 0, 0], parent: scythe, outline: .1 });
   for (let i = 0; i < 6; i++) {
-    const a = i * PI / 3 + PI / 6;
-    part(new T.ConeGeometry(.05, .35, 6), COL.steel, { pos: [Math.cos(a) * .7, Math.sin(a) * .7, 0], rot: [0, 0, a - PI / 2], parent: shield, outline: .04 });
+    const s = i % 2 ? 1 : -1;
+    part(new T.ConeGeometry(.015, .08, 4), COL.shaft, { pos: [s * .04, -.6 + i * .24, 0], rot: [0, 0, -s * 1.1], parent: scythe, outline: .1 });
+  }
+  scythe.add(new T.PointLight(0xff3040, .35, 1.4));
+  // gleam: the steel gives off a faint red light of its own, a soft pulsing halo hugs each blade,
+  // and now and then a glint runs along the cutting edge from heel to tip
+  toon(COL.blade).emissive.set(0x1c0609);
+  const haloMat = new T.MeshBasicMaterial({ color: 0xff3a4a, transparent: true, opacity: .11, blending: T.AdditiveBlending, depthWrite: false });
+  const glintMat = new T.MeshBasicMaterial({ color: 0xfff0f0, transparent: true, opacity: .85, blending: T.AdditiveBlending, depthWrite: false });
+  const glints = [], blades = [];
+  const A0 = PI / 2 - .25, A1 = PI + .5;
+  // a point on a blade's cutting edge, u = 0 at the heel to 1 at the tip (in the blade group's space)
+  const edgePoint = (b, u) => {
+    const a = A0 + (A1 - A0) * u, r = BLADE_R - BLADE_W * Math.pow(1 - u, .85) * .85;
+    return new T.Vector3(Math.cos(a) * r + b.base[0], Math.sin(a) * r + b.base[1], 0);
+  };
+  for (const end of [0, PI]) { // the bottom end is the top end turned 180°, so the blades make an S
+    const e = new T.Group(); e.rotation.z = end; scythe.add(e);
+    // blades sweep outward (local -x) from the end of the shaft and hook back down
+    const base = [0, SHAFT / 2 - BLADE_R + BLADE_W / 2];
+    const blade = slab(crescent(BLADE_R, BLADE_W, A0, A1, 0, 1, [.1, .2, .3]), .03, toon(COL.blade), e, base);
+    const o = new T.Mesh(blade.geometry, outlineMat); o.scale.setScalar(1.04); blade.add(o);
+    const halo = new T.Mesh(blade.geometry, haloMat); halo.scale.set(1.12, 1.12, 1.6); blade.add(halo);
+    slab(crescent(BLADE_R, BLADE_W, A0, A1, .45, .65), .04, glowMat, e, base);
+    const glint = new T.Mesh(S(.04, 8, 6), glintMat); e.add(glint);
+    glints.push({ mesh: glint, base, offset: end ? .5 : 0 });
+    blades.push({ e, base });
+    // spiky guard where blade meets shaft, with a glowing eye on each face
+    part(S(.07), COL.blade, { pos: [0, SHAFT / 2 - .04, 0], scale: [1.4, .9, .7], parent: e });
+    for (const a of [PI * .15, -PI * .05, -PI * .25]) {
+      part(new T.ConeGeometry(.025, .14, 5), COL.blade, { pos: [Math.cos(a) * .1, SHAFT / 2 - .04 + Math.sin(a) * .1, 0], rot: [0, 0, a - PI / 2], parent: e, outline: .08 });
+    }
+    for (const z of [-.045, .045]) {
+      const eye = new T.Mesh(S(.026, 8, 6), glowMat); eye.position.set(0, SHAFT / 2 - .04, z); e.add(eye);
+    }
+  }
+
+  // blood: every few seconds a drop gathers at the lowest point of either blade's edge, stretches,
+  // lets go and falls, leaving a small splat on the floor that fades away
+  const dropGeo = S(.035, 8, 6), splatGeo = new T.CircleGeometry(.08, 12);
+  const dropMat = new T.MeshBasicMaterial({ color: 0x9a0c16 });
+  const drops = [], splats = [];
+  let nextDrip = 1.5;
+  function dripBlood(dt) {
+    if ((nextDrip -= dt) <= 0) {
+      nextDrip = 2 + Math.random() * 3;
+      let low = null;
+      for (const b of blades) for (let u = .3; u <= 1; u += .07) {
+        const p = b.e.localToWorld(edgePoint(b, u));
+        if (!low || p.y < low.p.y) low = { b, u, p };
+      }
+      const mesh = new T.Mesh(dropGeo, dropMat); scene.add(mesh);
+      drops.push({ mesh, b: low.b, u: low.u, age: 0, vy: 0, falling: false });
+    }
+    for (let i = drops.length - 1; i >= 0; i--) {
+      const d = drops[i], m = d.mesh;
+      d.age += dt;
+      if (!d.falling) { // hangs off the edge, swelling and stretching
+        const k = Math.min(1, d.age / .8);
+        m.position.copy(d.b.e.localToWorld(edgePoint(d.b, d.u))).y -= .035 * k;
+        m.scale.set(.6 + k * .4, .5 + k * 1.3, .6 + k * .4);
+        if (k === 1) d.falling = true;
+        continue;
+      }
+      d.vy -= 6 * dt; m.position.y += d.vy * dt;
+      m.scale.set(.8, 2, .8);
+      if (m.position.y > .01) continue;
+      const splat = new T.Mesh(splatGeo, new T.MeshBasicMaterial({ color: 0x4a050b, transparent: true, opacity: .85, depthWrite: false }));
+      splat.rotation.x = -PI / 2; splat.position.set(m.position.x, .007, m.position.z);
+      scene.add(splat); splats.push({ mesh: splat, age: 0 });
+      scene.remove(m); drops.splice(i, 1);
+    }
+    for (let i = splats.length - 1; i >= 0; i--) {
+      const s = splats[i];
+      s.age += dt;
+      s.mesh.scale.setScalar(Math.min(1, .4 + s.age * 4));
+      s.mesh.material.opacity = .85 * Math.max(0, 1 - s.age / 3);
+      if (s.age >= 3) { scene.remove(s.mesh); s.mesh.material.dispose(); splats.splice(i, 1); }
+    }
   }
 
   // glowing pedestal
@@ -2049,10 +2333,17 @@ function initCharacter() {
     root.rotation.y = current;
     if (!still) {
       body.position.y = Math.sin(t * 2) * .015;
-      ears[0].rotation.x = -.15 + Math.sin(t * 1.7) * .06;
-      ears[1].rotation.x = -.15 + Math.sin(t * 1.7 + 1) * .08;
-      backHair.rotation.x = Math.sin(t * 1.3) * .03;
-    }
+      cloak.rotation.x = Math.sin(t * 1.3) * .015;
+      haloMat.opacity = .11 + Math.sin(t * 2.2) * .05;
+      for (const g of glints) { // each glint runs heel-to-tip in the first 40% of a 3.2s cycle, then rests
+        const phase = (t / 3.2 + g.offset) % 1, u = phase / .4;
+        g.mesh.visible = u < 1;
+        if (u >= 1) continue;
+        g.mesh.position.copy(edgePoint(g, u));
+        g.mesh.scale.setScalar(Math.sin(u * PI));
+      }
+      dripBlood(dt);
+    } else glints.forEach((g) => { g.mesh.visible = false; });
     renderer.render(scene, camera);
   })();
 }
